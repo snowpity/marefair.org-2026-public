@@ -1,0 +1,218 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+import TilingPaper from '@components/TilingPaper.astro';
+
+import TavernCenter from'@assets/sponsors/TavernWall/TavernWallCenter.png'
+import TavernBottom from'@assets/sponsors/TavernWall/TavernWall-Table.png'
+import TavernTile from'@assets/sponsors/TavernWall/TavernWallInfiniteScroll.png'
+
+const width = 1920 * 2;
+const ScrollCenter = await getImage({ src:TavernTile, format:"avif", width: width });
+
+const ratio = 3726 / 6480;
+
+import { getEntry } from 'astro:content';
+import type {Sponsor, SponsorCollection} from '@data/Sponsor';
+
+const sponsorNameExtractor = (sponsors : SponsorCollection|null|undefined) => {
+    return sponsors?.sponsors.map((s: Sponsor) => s.sponsorName) ?? []
+}
+
+const sponsorsMareSchizo = sponsorNameExtractor((await getEntry('sponsors', 'Mare Schizo'))?.data)
+const sponsorsMareFanatic = sponsorNameExtractor((await getEntry('sponsors', 'Mare Fanatic'))?.data)
+const sponsorsMareAficionado = sponsorNameExtractor((await getEntry('sponsors', 'Mare Aficionado'))?.data)
+const sponsorsMareConnoisseur = sponsorNameExtractor((await getEntry('sponsors', 'Mare Connoisseur'))?.data)
+const sponsorsMareAdmirer = sponsorNameExtractor((await getEntry('sponsors', 'Mare Admirer'))?.data)
+const sponsorsMareEnthusiast = sponsorNameExtractor((await getEntry('sponsors', 'Mare Enthusiast'))?.data)
+const sponsorsMareAppreciator = sponsorNameExtractor((await getEntry('sponsors', 'Mare Appreciator'))?.data)
+const sponsorsMareEnjoyer = sponsorNameExtractor((await getEntry('sponsors', 'Mare Enjoyer'))?.data)
+const sponsorsMareSupporter = sponsorNameExtractor((await getEntry('sponsors', 'Mare Supporter'))?.data)
+
+const boardWidth = 1400;
+import BoardTop from'@assets/sponsors/TavernWall/BoardTop.png'
+import BoardCenterRaw from'@assets/sponsors/TavernWall/BoardCenter.png'
+const BoardCenter = await getImage({ src:BoardCenterRaw, format:"avif", width: boardWidth });
+import BoardBottom from'@assets/sponsors/TavernWall/BoardBottom.png'
+---
+
+<Layout title="Sponsors | Mare Fair 2026">
+    <div class={`relative z-10 transition-opacity`} style={`--img-width: ${width}px`}>
+        <div id="board" class="relative min-h-screen h-full overflow-hidden">
+            <div id="top" class="relative flex flex-wrap justify-center pointer-events-none select-none">
+                <Image src={TavernCenter} alt="" format="avif" width={width} class=`block mx-auto scrollMinWidth` style=``/>
+            </div>
+            {/* change height to Auto if using height affecting divs i.e. texts or relative images*/}
+            <div id="cen" class="relative max-w-full mx-auto bg-top flex flex-wrap items-center justify-center h-auto scrollWidth" style={`background-image: url(${ScrollCenter.src});`}>
+
+                <div class={`relative z-10 transition-opacity`} style={`--img-width-wrap: ${boardWidth}px`}>
+                    <div id="board" class="relative h-full overflow-hidden -mt-350">
+                        <div id="top" class="relative flex flex-wrap justify-center pointer-events-none select-none ">
+                            <Image src={BoardTop} alt="" format="avif" width={boardWidth} class=`block mx-auto scrollMinWidth-wrap` style=``/>
+                        </div>
+                        {/* change height to Auto if using height affecting divs i.e. texts or relative images*/}
+                        <div id="cen" class="relative max-w-full mx-auto bg-top flex flex-wrap items-center justify-center h-auto pb-20 scrollWidth-wrap" style={`background-image: url(${BoardCenter.src});`}>
+                            <div id="corkboard-container" class="lora-500 flex flex-col relative justify-center w-[1000px] -mt-20 max-w-screen z-[1]" style="grid-auto-flow: row dense;">
+                                <TilingPaper>
+                                    <center>
+                                        <h1 class="sm:text-9xl text-[20vw] mb-10 germania-one-regular"> SPONSORS </h1>
+                                        <h1 class="sm:text-2xl text-xl mb-10 tagesschrift-regular"> HERE LIES THE NAMES OF PONIES ACCUSED OF BEING <b> <u>BASED</u></b>. </h1>
+                                        <hr class="border-2 sm:w-[90%] w-full mx-auto" />
+                                        <div class="w-full md:w-5/6 pt-8 pb-7 decoration-black">
+                                            <div class="w-full text-4xl tracking-wider">
+                                                <div class="flex justify-center font-extrabold">MARE SCHIZO</div>
+                                            </div>
+                                            <div class="py-2 w-full text-xl md:text-3xl tracking-wider text-center">
+                                                {sponsorsMareSchizo?.length ? sponsorsMareSchizo.join(", ") : "No pony yet!"}
+                                            </div>
+                                        </div>
+
+                                        <hr class="border-2 sm:w-[90%] w-full mx-auto" />
+                                        <div class="w-full md:w-5/6 pt-8 pb-7 decoration-black">
+                                            <div class="w-full text-3xl tracking-wider">
+                                                <div class="flex justify-center font-extrabold">MARE FANATIC</div>
+                                            </div>
+                                            <div class="py-2 w-full text-base md:text-xl tracking-wider text-center">
+                                                {sponsorsMareFanatic?.length ? sponsorsMareFanatic.join(", ") : "No pony yet!"}
+                                            </div>
+                                        </div>
+
+                                        <hr class="border-2 sm:w-[90%] w-full mx-auto" />
+                                        <div class="w-full md:w-5/6 pt-8 pb-7 decoration-black">
+                                            <div class="w-full text-2xl tracking-wider">
+                                                <div class="flex justify-center font-extrabold">MARE AFICIONADO</div>
+                                            </div>
+                                            <div class="py-2 w-full text-sm md:text-base tracking-wider text-center">
+                                                {sponsorsMareAficionado?.length ? sponsorsMareAficionado.join(", ") : "No pony yet!"}
+                                            </div>
+                                        </div>
+
+                                        <hr class="border-2 sm:w-[90%] w-full mx-auto" />
+                                        <div class="w-full md:w-5/6 pt-8 pb-7 decoration-black">
+                                            <div class="w-full text-xl tracking-wider">
+                                                <div class="flex justify-center font-extrabold">MARE CONNOISSEUR</div>
+                                            </div>
+                                            <div class="py-2 w-full text-sm md:text-base tracking-wider text-center">
+                                                {sponsorsMareConnoisseur?.length ? sponsorsMareConnoisseur.join(", ") : "No pony yet!"}
+                                            </div>
+                                        </div>
+
+                                        <hr class="border-2 sm:w-[90%] w-full mx-auto" />
+                                        <div class="w-full md:w-5/6 pt-8 pb-7 decoration-black">
+                                            <div class="w-full text-lg tracking-wider">
+                                                <div class="flex justify-center font-extrabold">MARE ADMIRER</div>
+                                            </div>
+                                            <div class="py-2 w-full text-sm md:text-base tracking-wider text-center">
+                                                {sponsorsMareAdmirer?.length ? sponsorsMareAdmirer.join(", ") : "No pony yet!"}
+                                            </div>
+                                        </div>
+
+                                        <hr class="border-2 sm:w-[90%] w-full mx-auto" />
+                                        <div class="w-full md:w-5/6 pt-8 pb-7 decoration-black">
+                                            <div class="w-full text-lg tracking-wider">
+                                                <div class="flex justify-center font-extrabold">MARE ENTHUSIAST</div>
+                                            </div>
+                                            <div class="py-2 w-full text-sm md:text-base tracking-wider text-center">
+                                                {sponsorsMareEnthusiast?.length ? sponsorsMareEnthusiast.join(", ") : "No pony yet!"}
+                                            </div>
+                                        </div>
+
+                                        <hr class="border-2 sm:w-[90%] w-full mx-auto" />
+                                        <div class="w-full md:w-5/6 pt-8 pb-7 decoration-black">
+                                            <div class="w-full text-lg tracking-wider">
+                                                <div class="flex justify-center font-extrabold">MARE APPRECIATOR</div>
+                                            </div>
+                                            <div class="py-2 w-full text-sm md:text-base tracking-wider text-center">
+                                                {sponsorsMareAppreciator?.length ? sponsorsMareAppreciator.join(", ") : "No pony yet!"}
+                                            </div>
+                                        </div>
+
+                                        <hr class="border-2 sm:w-[90%] w-full mx-auto" />
+                                        <div class="w-full md:w-5/6 pt-8 pb-7 decoration-black">
+                                            <div class="w-full text-lg tracking-wider">
+                                                <div class="flex justify-center font-extrabold">MARE ENJOYER</div>
+                                            </div>
+                                            <div class="py-2 w-full text-sm md:text-base tracking-wider text-center">
+                                                {sponsorsMareEnjoyer?.length ? sponsorsMareEnjoyer.join(", ") : "No pony yet!"}
+                                            </div>
+                                        </div>
+
+                                        <hr class="border-2 sm:w-[90%] w-full mx-auto" />
+                                        <div class="w-full md:w-5/6 pt-8 pb-7 decoration-black">
+                                            <div class="w-full text-lg tracking-wider">
+                                                <div class="flex justify-center font-extrabold">MARE SUPPORTER</div>
+                                            </div>
+                                            <div class="py-2 w-full text-sm md:text-base tracking-wider text-center">
+                                                {sponsorsMareSupporter?.length ? sponsorsMareSupporter.join(", ") : "No pony yet!"}
+                                            </div>
+                                        </div>
+                                    </center>
+                                </TilingPaper>
+                            </div>
+                        </div>
+                        <div id="bot" class="relative flex flex-wrap justify-center pointer-events-none select-none z-[0] mb-100 -mt-10 w-full ">
+                            <div class="relative w-fit h-fit">
+                                <Image src={BoardBottom} alt="" format="avif" width={boardWidth} class=`block mx-auto scrollMinWidth-wrap` style=``/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <Image src={TavernBottom} alt="" format="avif" width={1920*2} class="min-w-[3840px] absolute bottom-0 center-horizontally z-10" inert/>
+            <div class="absolute top-0 imgWidth h-full min-h-screen center-horizontally pointer-events-none">
+                <div class="absolute top-0 left-0 w-[640px] h-full -translate-x-[calc(100%-640px)] bg-gradient-to-l from-transparent to-black pointer-events-none before:content-[''] before:absolute before:top-0 before:right-full before:w-screen before:h-full before:bg-black"></div>
+                <div class="absolute top-0 right-0 w-[640px] h-full translate-x-[calc(100%-640px)] bg-gradient-to-r from-transparent to-black pointer-events-none before:content-[''] before:absolute before:top-0 before:left-full before:w-screen before:h-full before:bg-black"></div>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+    .scrollMinWidth {
+        @apply min-w-[var(--img-width)] w-[var(--img-width)];
+    }
+    .scrollWidth {
+        @apply w-[var(--img-width)] bg-size-[var(--img-width)_auto];
+    }
+
+    .scrollMinWidth-wrap {
+        @apply min-w-[var(--img-width-wrap)] w-[var(--img-width-wrap)];
+    }
+    .scrollWidth-wrap {
+        @apply w-[var(--img-width-wrap)] bg-size-[var(--img-width-wrap)_auto];
+    }
+
+    #navigation-toggle:checked ~ #coc-nav {
+        @apply -right-full;
+    }
+    #navigation-toggle:checked ~ #navigation-toggle-button {
+        @apply -rotate-90;
+    }
+    #navigation-toggle-mobile:checked ~ #coc-nav-mobile {
+        @apply right-0;
+    }
+    #navigation-toggle-mobile:checked ~ #navigation-toggle-button-mobile {
+        @apply rotate-0;
+    }
+    .center-horizontally{
+        @apply left-1/2 -translate-x-1/2;
+    }
+    .imgWidth{
+        width: var(--img-width);
+        max-width: var(--img-width);
+        min-width: var(--img-width);
+    }
+</style>
+
+<script>
+    document.addEventListener("astro:page-load", () =>
+    {
+        // ACHIEVEMENT: checkout the sponsors
+        if (!window.steamAchievements.isUnlocked('criminally_rich')) {
+            window.steamAchievements.unlock('criminally_rich');
+        }
+    });
+</script>

@@ -1,0 +1,315 @@
+---
+import { Icon } from 'astro-icon/components'
+
+const links = [
+    {
+        name: "Home",
+        link: "/",
+        newtab: false
+    },
+    {
+        name: "About Us",
+        link: "/about"
+    },
+    {
+        hasBreak: true,
+        name: "Apply",
+        link: "/apply",
+        nestedLink: [
+            {
+                name: "As Musician",
+                link: "https://reg.marefair.org/apply/application.php?c=musician",
+                newtab: true,
+            },
+            {
+                name: "As Staff",
+                link: "https://reg.marefair.org/staff/application.php",
+                newtab: true,
+            },
+            {
+                name: "As Panelist",
+                link: "https://reg.marefair.org/apply/application.php?c=panel",
+                newtab: true,
+            },
+            {
+                name: "As Vendor",
+                link: "https://reg.marefair.org/apply/application.php?c=vendor",
+                newtab: true,
+            },
+            {
+                name: "As AD Vendor",
+                link: "https://reg.marefair.org/apply/application.php?c=advendo",
+                newtab: true,
+            },
+            {
+                name: "To Artist Alley",
+                link: "https://reg.marefair.org/apply/application.php?c=artist",
+                newtab: true,
+            },
+        ]
+    },
+    {
+        name: "Register",
+        link: "/register"
+    },
+    {
+        name: "Sponsors",
+        link: "/sponsors"
+    },
+    {
+        name: "Venue",
+        link: "/venue"
+    },
+    {
+        hasBreak: true,
+        name: "Schedule",
+        link: "/schedule"
+    },
+
+    {
+        name: "Map",
+        link: "/map"
+    },
+    {
+        name: "Conbook",
+        link: "/conbook"
+    },
+    {
+        name: "Events",
+        link: "/events"
+    },
+    {
+        name: "Musicians",
+        link: "/musician"
+    },
+    {
+        name: "Vendors",
+        link: "/vendors",
+        nestedLink: [
+            {
+                name: "Afterdark",
+                link: "/vendors/#afterdark",
+            },
+        ]
+    },
+    {
+        hasBreak: true,
+        name: "News",
+        link: "/news",
+        nestedLink: [
+            {
+                name: "News",
+                link: "/news/#news",
+                newtab: false,
+            },
+            {
+                name: "Blogs",
+                link: "/news/#blogs",
+                newtab: false,
+            },
+        ]
+    },
+    {
+        name: "Socials",
+        link: "",
+        nestedLink: [
+            {
+                name: "𝕏",
+                link: "https://x.com/MareFairCon",
+                icon: "X",
+                newtab: true,
+            },
+            {
+                name: "YouTube",
+                link: "https://www.youtube.com/@MareFair",
+                icon: "mdi:youtube",
+                newtab: true,
+            },
+            {
+                name: "Mastodon",
+                link: "https://pone.social/@MareFair/",
+                icon: "mdi:mastodon",
+                newtab: true,
+            },
+            {
+                name: "GitHub",
+                link: "https://github.com/snowpity/",
+                icon: "mdi:github",
+                newtab: true,
+            },
+        ]
+    },
+    {
+        hasBreak: true,
+        name: "Scrapbook",
+        link: "/scrapbook"
+    },
+    {
+        name: "Credits",
+        link: "/credits"
+    },
+    {
+        hasBreak: true,
+        name: "Mascots",
+        link: "/mascots"
+    },
+    {
+        name: "Contact",
+        link: "/contact"
+    },
+    {
+        name: "Code of Conduct",
+        link: "/coc"
+    },
+    {
+        name: "Privacy Policy",
+        link: "/privacy"
+    },
+    {
+        name: "Comics",
+        link: "/comics"
+    },
+    {
+        hasBreak: true,
+        name: "Achievements",
+        link: "javascript:void(0)"
+    },
+]
+---
+
+<div id="hamburger_menu" class="fixed w-[100lvw] h-[100dvh] z-999999 pointer-events-none">
+    <input type="checkbox" id="checkbox_hamburger_menu" class="peer hidden">
+
+    <label for="checkbox_hamburger_menu" tabindex="0" role="button" aria-label="Navigation menu" class="w-14 h-14 m-2 rounded-md bg-black/50 hover:bg-black transition-colors text-white cursor-pointer fixed top-0 right-0 flex items-center justify-center pointer-events-auto">
+        <Icon name="mdi:menu" class="text-5xl"/>
+    </label>
+
+    <label for="checkbox_hamburger_menu"  class="fixed backdrop-blur-lg bg-black/70 top-0 left-0 w-[100dvw] h-[100dvh] opacity-0 peer-checked:opacity-100 pointer-events-none peer-checked:pointer-events-auto transition-opacity duration-300">
+
+    </label>
+
+    <div id="hamburger_list" class="absolute top-0 -right-[100lvw] space-y-0 sm:w-80 w-screen max-w-[calc(100dvw-2.5rem)] m-5 rounded-xl overflow-hidden peer-checked:right-0 transition-[right] duration-300 text-3xl pointer-events-auto" inert>
+        <p class="bg-green-900 text-center text-white">Index</p>
+        <label for="checkbox_hamburger_menu" aria-label="Close" class="cursor-pointer absolute top-0 right-0">
+            <Icon name="mdi:alpha-x-box-outline" class="text-4xl text-white"/>
+        </label>
+        <div class="relative content bg-white max-h-[calc(100dvh-5rem)] overflow-auto"> {/* 5rem = m-5*4 */}
+            <div id="scroll_indicator_top" class="sticky top-0 w-full h-20 -mb-20 bg-gradient-to-b from-white to-white/0 hidden transition-opacity pointer-events-none z-10"/>
+            {
+                links.map((link) => (
+                    <>
+                        {link.hasBreak ? <hr class="mx-5 opacity-50 border-t-2 rounded-full"/> : ""}
+                        {link.nestedLink && link.nestedLink.length > 0 ? (
+                            <details class="[&[open]_.summary-arrow]:rotate-90">
+                                <summary class="pl-2 selectable flex items-center">
+                                    <Icon name="mdi:arrow-right-drop-circle" class="select-none summary-arrow mr-4 cursor-pointer" title="Click to expand submenu"/>
+                                    {link.link && link.link.length > 0 ? (
+                                        <a href={link.link} id={link.name} target={link.newtab ? "_blank" : undefined} data-astro-prefetch class="flex-1 block selectable-link">{link.name}</a>
+                                    ) : (
+                                        <span class="py-2"> {link.name} </span>
+                                    )}
+
+                                </summary>
+                                {
+                                    link.nestedLink.map((nlink) => (
+                                        <li class="">
+                                            <a href={nlink.link} id={nlink.name} target={nlink.newtab ? "_blank" : undefined} data-astro-prefetch class="inline-flex pl-10 selectable-link selectable">
+                                                <Icon name="mdi:arrow-right-bottom" class="select-none inline"/>
+                                                {'icon' in nlink && nlink.icon && nlink.icon.length > 0 ? (
+                                                    <Icon name={nlink.icon} class="inline mr-2"/>
+                                                ) : (
+                                                    ''
+                                                )}
+                                                {nlink.name}
+                                            </a>
+                                        </li>
+                                    ))
+                                }
+                            </details>
+                        ) : (
+                            <details>
+                                <summary class="pl-[3.35rem] selectable list-none" tabindex="-1"> <a href={link.link} id={link.name} target={link.newtab ? "_blank" : undefined} class="block selectable-link"> {link.name} </a> </summary>
+                            </details>
+                        )}
+                    </>
+                ))
+            }
+            <div id="scroll_indicator_bottom" class="sticky bottom-0 w-full h-20 -mt-20 bg-gradient-to-t from-white to-white/0 hidden transition-opacity pointer-events-none z-10"/>
+        </div>
+    </div>
+</div>
+<style>
+    @reference "tailwindcss";
+    @keyframes v-appear {
+        0%, 99% {
+            visibility: hidden;
+        }
+        100% {
+            visibility: visible;
+        }
+    }
+    .fouc-appear {
+        animation: v-appear 500ms forwards;
+    }
+    .selectable {
+        @apply hover:bg-sky-100 transition-colors;
+    }
+
+    .selectable-link {
+        @apply w-full py-2 hover:underline;
+    }
+</style>
+
+<script>
+    // I know of a way to do this without JS, but it wouldn't work on webkit and firefox.
+    document.addEventListener("astro:page-load", () => {
+        const content = document.querySelector('.content') as HTMLElement;
+        const indicatorBottom = document.getElementById('scroll_indicator_bottom') as HTMLElement;
+        const indicatorTop = document.getElementById('scroll_indicator_top') as HTMLElement;
+
+        indicatorBottom.classList.toggle('hidden');
+        indicatorTop.classList.toggle('hidden');
+
+        if (content && indicatorBottom && indicatorTop) {
+            const updateIndicators = () => {
+                const isAtBottom = content.scrollHeight - content.scrollTop <= content.clientHeight + 1;
+                const isAtTop = content.scrollTop <= 1;
+
+                indicatorTop.style.opacity = isAtTop ? '0' : '1';
+                indicatorBottom.style.opacity = isAtBottom ? '0' : '1';
+            };
+
+            // Run once immediately on page load
+            updateIndicators();
+
+            content.addEventListener('scroll', updateIndicators);
+        }
+
+        // Accessibility: Disabling tabbing when hamburger menu is disabled
+        const checkbox = document.getElementById('checkbox_hamburger_menu') as HTMLInputElement;
+        const menuContainer = document.getElementById('hamburger_list') as HTMLElement;
+
+        if (checkbox && menuContainer) {
+            const updateInert = () => {
+                if (checkbox.checked) {
+                    menuContainer.removeAttribute('inert');
+                } else {
+                    menuContainer.setAttribute('inert', '');
+                }
+            };
+
+            updateInert(); // Initial state
+            checkbox.addEventListener('change', updateInert);
+        }
+
+        // Close menu with Escape key
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && checkbox?.checked) {
+                checkbox.checked = false;
+                checkbox.dispatchEvent(new Event('change'));
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+    });
+</script>

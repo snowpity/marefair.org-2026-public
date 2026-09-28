@@ -1,0 +1,122 @@
+---
+import { Image } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+    image: any;
+    prevName?: string;
+    nextName?: string;
+}
+
+const { image, prevName, nextName } = Astro.props;
+---
+
+<div id={image.name.replace(/\s+/g, '')} class="overlay w-screen h-screen fixed inset-0 flex justify-center items-center bg-black bg-opacity-0 z-10">
+    <a href="#main" class="out absolute w-screen h-screen"/>
+    <div class="wrapper-content transform scale-0 h-screen py-24 relative flex flex-col w-[60%]">
+        <a href="#main" class="out absolute w-full h-full"/>
+        {prevName && (
+            <a href={`#${prevName}`} class="previous absolute left-[-20%] transform text-white opacity-0 transition-opacity duration-800 delay-300">
+                <Icon name="mdi:arrow-left" class="material-symbols-outlined !text-5xl hover:scale-150 transition-transform"/>
+            </a>
+        )}
+        {typeof image.src !== 'string' ? (
+            <Image
+                src={image.src}
+                format={image.format || "png"}
+                loading="lazy"
+                alt={image.alt}
+                class="relative w-auto max-h-full object-contain mx-auto full-size"
+            />
+        ) : image.format === 'webm' ? (
+            <video
+                src={image.src}
+                poster={image.poster}
+                loop
+                muted
+                controls
+                class="relative w-auto h-full max-h-full object-contain mx-auto"
+            />
+        ) : (
+            <img
+                src={image.src}
+                alt={image.alt}
+                loading="lazy"
+                class="relative w-auto max-h-full object-contain mx-auto"
+            />
+        )}
+        {nextName && (
+            <a href={`#${nextName}`} class="next absolute right-[-20%] transform text-white opacity-0 transition-opacity duration-800 delay-300">
+                <Icon name="mdi:arrow-right" class="material-symbols-outlined !text-5xl hover:scale-150 transition-transform"/>
+            </a>
+        )}
+        <p class="absolute left-0 bottom-7 text-white text-sm font-light opacity-0 text-shadow transition-opacity duration-800 delay-300">
+            {image.description}
+        </p>
+    </div>
+</div>
+
+<style>
+    @reference "tailwindcss";
+    .full-size {
+        @apply border border-transparent hover:border-white transition-colors duration-300;
+    }
+
+    .overlay {
+        pointer-events: none;
+        display: none;
+    }
+
+    .overlay:target {
+        background: rgba(0, 0, 0, 0.9);
+        pointer-events: auto;
+        display: flex;
+    }
+
+    .overlay:target .wrapper-content {
+        scale: 1;
+        display: flex;
+        justify-content: center;
+    }
+
+    .overlay:target .wrapper-content img {
+        animation: fadeInOut 0.4s ease;
+    }
+
+    .overlay:target .wrapper-content .previous,
+    .overlay:target .wrapper-content .next {
+        animation: fade 0.4s ease 0.1s forwards;
+    }
+
+    .overlay:target .wrapper-content p {
+        animation: slideUpFade 0.4s ease forwards;
+    }
+
+    @keyframes fadeInOut {
+        0% { transform: scale(0); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes slideUpFade {
+        0% { opacity: 0; bottom: -1%; }
+        100% { opacity: 1; bottom: 7%; }
+    }
+
+    @keyframes fade {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+</style>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            const anyOpen = document.querySelector('.overlay:target');
+            if (!anyOpen) return;
+
+            location.hash = '#main';
+            history.replaceState(null, '', location.pathname);
+        });
+    });
+</script>

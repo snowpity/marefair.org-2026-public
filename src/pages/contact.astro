@@ -1,0 +1,445 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+import { Icon } from 'astro-icon/components'
+
+import tarot from '@assets/contact/Tarot_Cards.png';
+import Attendee from '@assets/contact/Attendee.png';
+import Charity from '@assets/contact/Charity.png';
+import HPIC from '@assets/contact/HPIC.png';
+import Public_Relation from '@assets/contact/Public_Relation.png';
+import Scheduling from '@assets/contact/Scheduling.png';
+import Tech from '@assets/contact/Tech.png';
+import Volunteer_Relation from '@assets/contact/Volunteer_Relation.png';
+import Vendor_Relation from '@assets/contact/Vendor_Relation.png';
+import Music from '@assets/contact/Music.png';
+
+import fortune_tellers_table from '@assets/contact/fortune_tellers_table.png';
+import fortune_teller_mare from '@assets/contact/fortune_teller_mare.png';
+
+const contacts = [
+    {
+        quote: "\"At the pinnacle of power stands the one who orchestrates the symphony of our gathering; all roads lead here.\"",
+        responsibility: "Reach the highest authority for critical matters, leadership inquiries, or concerns that require the wisdom of the crown.",
+        pull: HPIC,
+        position: "Head Pony in Charge",
+        email: "exec@marefair.org"
+    },
+    {
+        quote: "\"Your faithful companions on the quest; no traveler walks alone when guidance is but a missive away.\"",
+        responsibility: "For assistance with registration, badge retrieval, accessibility needs, or any challenge you face as you prepare for the journey ahead.",
+        pull: Attendee,
+        position: "Attendee Relations",
+        email: "attendees@marefair.org"
+    },
+    {
+        quote: "\"These majestic beings have carried us through stories and dreams; now we carry them to safety, healing, and home.\"",
+        responsibility: "Reach out to contribute auction items, learn about our charitable mission, or discover how your generosity can have real impact.",
+        pull: Charity,
+        position: "Charity",
+        email: "charity@marefair.org"
+    },
+    {
+        quote: "\"The bardic college where troubadours gather, melodies become magic, and songs echo through halls that remember every refrain.\"",
+        responsibility: "For musical performance inquiries, concert coordination, or questions about sharing your bardic expertise with our realm.",
+        pull: Music,
+        position: "Musicians",
+        email: "musician@marefair.org"
+    },
+    {
+        quote: "\"The town crier's bell rings from this tower, carrying news of our gathering to every corner of the realm.\"",
+        responsibility: "For those who chronicle our tale: press, media, partnerships, and spreading the tale of Mare Fair far and wide.",
+        pull: Public_Relation,
+        position: "Public Relations",
+        email: "pr@marefair.org"
+    },
+    {
+        quote: "\"The grand tapestry of time itself, woven with panels, performances, and legendary events waiting to unfold.\"",
+        responsibility: "To propose a quest (panel), coordinate an event, or shape the timeline of our epic gathering.",
+        pull: Scheduling,
+        position: "Scheduling",
+        email: "scheduling@marefair.org"
+    },
+    {
+        quote: "\"The arcane forge where digital magic meets mortal needs, maintaining the enchanted infrastructure of this realm.\"",
+        responsibility: "For technical sorcery, website issues, app mysteries, digital troubles, or when the magic mirror won't cooperate.",
+        pull: Tech,
+        position: "Technology",
+        email: "tech@marefair.org"
+    },
+    {
+        quote: "\"Where the finest artisans of the land convene to share their legendary creations with an eager and appreciative court.\"",
+        responsibility: "For craftspeople and merchants seeking to establish their stall in our bustling bazaar.",
+        pull: Vendor_Relation,
+        position: "Vendor Relations",
+        email: "vendor@marefair.org"
+    },
+    {
+        quote: "\"Every great kingdom is built by those who serve with diligence; will you join the ranks of the unsung heroes?\"",
+        responsibility: "Join the ranks of the champions who make the magic happen, and lend your strength to the cause!",
+        pull: Volunteer_Relation,
+        position: "Human Resources",
+        email: "HR@marefair.org"
+    },
+];
+
+import BgTileable from '@components/BgTileable.astro';
+import woodRaw from "@assets/bg/wood.png";
+const wood = await getImage({ src: woodRaw, format:"png", height:2048});
+---
+
+<Layout title="Contact | Mare Fair 2026">
+    <BgTileable imgSrc={wood.src} vignette stain/>
+
+    <input type="radio" id="cards-default" name="card-selected" class="hidden" checked/>
+    {contacts.map((contact) => (
+        <input type="radio" id={`cards-${contact.position.replace(/\s+/g, '')}`} name="card-selected" class="hidden"/>
+    ))}
+
+    <div id="contact-wrapper" class="min-w-screen min-h-screen flex justify-center items-center flex-row pull-tab-container relative">
+        <div id="grid-wrapper" class="relative grid md:grid-cols-3 grid-cols-2 gap-4 w-fit h-fit p-10 drop-shadow-[5px_5px_5px_rgba(0,0,0,1)]">
+            {contacts.map((contact) => (
+            <label tabindex="0" role="button" aria-label={`View ${contact.position} contact information`} for={`cards-${contact.position.replace(/\s+/g, '')}`} class={`card-small relative h-fit w-fit flex ease-in-out cursor-pointer transition-all duration-300`}>
+                <Image
+                    src={contact.pull}
+                    alt={contact.position}
+                    format="avif"
+                    width="300"
+                    class="select-none transition-all duration-300 hover:scale-110 hover:drop-shadow-[0_0_0.5rem_rgb(256,0,256)]"
+                />
+            </label>
+            ))}
+        </div>
+    </div>
+
+    <div class="drop-shadow-[15px_15px_15px_rgba(0,0,0,1)]">
+        <div class="relative h-[800px] w-[1920px] max-w-screen mx-auto" inert>
+            <Image src={fortune_teller_mare} width={1024} alt="Fortune Teller Mare" format="avif" class="absolute min-w-[1024px] md:ml-0 sm:-ml-[20%] -ml-[70%] bottom-0 left-0 -mb-30"/>
+        </div>
+        <div class="absolute center-horizontally bottom-0 min-w-[1920px]">
+            <Image src={fortune_tellers_table} width={1920} alt="Fortune Teller Table" format="avif" class="" inert/>
+            <button id="fortuneCrystal" class="absolute top-0 w-[20%] h-[75%] rounded-full center-horizontally cursor-pointer hidden"/>
+        </div>
+    </div>
+
+    {contacts.map((contact) => (
+    <div id={`cards-selected-${contact.position.replace(/\s+/g, '')}`} class="pointer-events-none fixed w-screen h-screen top-0 opacity-0 transition-opacity duration-300 flex justify-center items-center invisible">
+        <label tabindex="-1" role="button" aria-label="Close card and return to grid" for="cards-default" class="back-bg absolute cursor-pointer bg-black w-full h-full top-0 left-0 opacity-70"/>
+        <div class={`card-big relative h-fit w-fit max-h-screen max-w-screen aspect-[7/12] flex ease-in-out pointer-auto z-10 transition-all duration-300`}>
+            <Image
+                src={tarot}
+                alt={`${contact.position} card back`}
+                format="avif"
+                width="600"
+                class="select-none"
+            inert/>
+
+            <div class="texts absolute w-full h-full px-[20%] py-[40%] lora-500">
+                <!-- <h1 class="font-bold text-3xl text-center"> Responsibilities </h1> -->
+                <p class="modal-text whitespace-pre-line italic tagesschrift-regular"> {contact.quote} </p> <br/>
+                <p class="modal-text whitespace-pre-line"> {contact.responsibility} </p>
+                <h1 class="font-bold modal-header text-center mt-[10%]"> Contact </h1>
+                <p tabindex="0" role="button" class="relative block modal-text text-center hover:underline cursor-pointer"
+                    data-email={contact.email} aria-label={`Copy ${contact.email} to clipboard`}>
+                    {contact.email}
+                </p>
+            </div>
+            <label tabindex="0" role="button" aria-label="Read your fortune" for="cards-default" class="absolute top-0 right-0 m-[5%] cursor-pointer hover:scale-105 bg-white rounded-md"> <Icon name="mdi:alpha-x-box-outline" class="text-4xl"/> </label>
+        </div>
+    </div>
+    ))}
+
+<div id="fortune_inert" class="group" inert>
+    <input type="checkbox" id="fortune_modal" class="peer hidden" autocomplete="off">
+    <div class="peer-checked:pointer-events-auto pointer-events-none peer-checked:opacity-100 opacity-0 bg-black/70 fixed top-0 left-0 w-screen h-screen z-50 transition-opacity flex justify-center items-center">
+        <label id="vendorModal" for="fortune_modal" tabindex="0" role="button" aria-label="Modal Switch" class="cursor-pointer absolute top-0 w-full h-full"/>
+        <div class="group-has-[:checked]:pointer-events-auto relative pointer-events-none w-[700px] h-[300px] p-4 overflow-hidden shadow-[0_0_35px_rgba(0,0,0,1)] bg-[#d6daf0]">
+            <div id="fortuneInit" class="w-full h-full flex flex-col justify-center items-center">
+                <p> Ask me anything </p>
+                <input type="text" id="fortuneInput" maxlength="150" class="bg-white border"/>
+                <button id="fortuneSubmit" class="w-20 h-8 bg-white border mt-1 cursor-pointer"> Submit </button>
+            </div>
+            <div id="post" class="relative text-xl gap-2 hidden">
+                <span class="text-[#117743] font-bold">Anonymous</span>
+                <span id="timeStamp"></span>
+                <span>No.</span><span id="postID"></span>
+                <span id="Yous" class="text-[#D00] underline"> </span>
+                <br/>
+                <span>File:</span>
+                <a href="https://fair-filer.marefair.org/2026/contact/fortune_teller_mare.png" target="_blank" class="text-[#34345C] hover:text-[#D00] underline">fortune_teller_mare.png</a>
+                <span>(483 KB, 2000x2000)</span>
+                <br/>
+                <a href="https://fair-filer.marefair.org/2026/contact/fortune_teller_mare.png" target="_blank" class="float-left mr-3 mb-2">
+                    <Image src={fortune_teller_mare} width={200} alt="Fortune Teller Mare Small" format="avif"/>
+                </a>
+                <p id="text" class="mt-2"></p>
+                <p id="fortune" class="mt-2"></p>
+                <div class="clear-both"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+    .card-small { /* Note: whichever state has the delay is the one being delayed, this case, is the going back */
+        transition-delay: 200ms;
+    }
+    .card-big {
+        transform: translateY(100vh);
+    }
+    .center-horizontally{
+        @apply left-1/2 -translate-x-1/2;
+    }
+
+    .modal-text {
+        @apply [@media(max-height:1024px)]:text-[2.5vh] [@media(max-width:600px)]:text-[4vw] text-xl;
+    }
+    .modal-header {
+        @apply [@media(max-height:1024px)]:text-[3.5vh] [@media(max-width:600px)]:text-[6vw] text-3xl
+    }
+</style>
+
+<style is:inline set:html={contacts.map((contact) => `
+    #cards-${contact.position.replace(/\s+/g, '')}:checked ~ #contact-wrapper #grid-wrapper [for="cards-${contact.position.replace(/\s+/g, '')}"] {
+        transform: translateY(100%);
+        opacity: 0;
+        pointer-events: none;
+        transition-delay: 0ms;
+        z-index: 10;
+    }
+    #cards-${contact.position.replace(/\s+/g, '')}:checked ~ #cards-selected-${contact.position.replace(/\s+/g, '')} {
+        opacity: 1;
+        pointer-events: auto;
+        transition-delay: 150ms;
+        visibility: visible;
+    }
+
+    #cards-${contact.position.replace(/\s+/g, '')}:checked ~ #cards-selected-${contact.position.replace(/\s+/g, '')} .card-big {
+        transform: translateY(0);
+        transition-delay: 150ms;
+    }
+`).join('\n')} />
+
+<script>
+    const fortunes = [
+        "Bad Luck",
+        "Average Luck",
+        "Good Luck",
+        "Excellent Luck",
+        "Reply hazy, try again",
+        "Godly Luck",
+        "Very Bad Luck",
+        "Outlook good",
+        "Better not tell you now",
+        "You will meet a dark handsome stranger",
+        "ｷﾀ━━━━━━(ﾟ∀ﾟ)━━━━━━ !!!!",
+        "（　´_ゝ`）ﾌｰﾝ ",
+        "Good news will come to you by mail"
+    ]
+
+    const fortuneColours = [
+        "#f51c6a", // rouge
+        "#2a56fb", // blue
+        "#9d05da", // purple
+        "#d302a7", // neon pink
+        //"#16f174", // bright green
+        //"#7fec11", // green
+        //"#e7890c", // orange
+        "#fd4d32", // red
+        "#6023f8", // darker purple
+        //"#bac200", // yellow
+    ]
+
+    function getFormattedTimestamp() {
+        const now = new Date();
+
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const year = String(now.getFullYear()).slice(-2);
+
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const dayName = days[now.getDay()];
+
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+
+        return `${month}/${day}/${year}(${dayName})${hours}:${minutes}:${seconds}`;
+    }
+
+    function checkRepeatingDigits(number: string) {
+        const match = number.match(/(\d)\1*$/);
+        return match ? match[0].length : 1;
+    }
+
+    document.addEventListener("astro:page-load", () => {
+        const FortuneInert = document.getElementById("fortune_inert") as HTMLElement;
+        const FortuneCheckbox = document.getElementById("fortune_modal") as HTMLInputElement;
+        const FortuneInput = document.getElementById("fortuneInput") as HTMLInputElement;
+        const FortuneSubmit = document.getElementById("fortuneSubmit") as HTMLInputElement;
+
+        const fortuneCrystal = document.getElementById("fortuneCrystal") as HTMLElement;
+        const fortuneInit = document.getElementById("fortuneInit") as HTMLElement;
+
+        const post = document.getElementById("post") as HTMLElement;
+
+        const timestamp = document.getElementById("timeStamp") as HTMLElement;
+        const postID = document.getElementById("postID") as HTMLElement;
+        const Yous = document.getElementById("Yous") as HTMLElement;
+        const text = document.getElementById("text") as HTMLElement;
+        const fortune = document.getElementById("fortune") as HTMLElement;
+
+        let postIDTimeouts: ReturnType<typeof setTimeout>[] = [];
+
+        // Accessibility: remove the fortune modal context when deactivated.
+        const updateInert = () => {
+            if (!FortuneCheckbox.checked)
+                FortuneInert.setAttribute('inert', '');
+            else
+                FortuneInert.removeAttribute('inert');
+        };
+
+        FortuneCheckbox.addEventListener('change', updateInert);
+
+        const digitTimeout = 250; // 250ms
+        function reset()
+        {
+            // Clear all pending timeouts
+            postIDTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+            postIDTimeouts = [];
+
+            post.classList.add("hidden");
+            fortuneInit.classList.remove("hidden");
+
+            postID.innerHTML = Yous.innerHTML = fortune.innerHTML = text.innerHTML = FortuneInput.value = "";
+        }
+
+        fortuneCrystal.classList.remove("hidden"); // Enabling the crystal only for js users.
+        // Get fortune
+        fortuneCrystal.addEventListener("click", () => {
+            reset();
+            FortuneCheckbox.checked = true;
+            FortuneCheckbox.dispatchEvent(new Event('change'));
+        });
+
+        // Roll
+        function submitQuestion()
+        {
+            // ACHIEVMENT: Asked the Fortune Teller a question
+            if (!window.steamAchievements.isUnlocked('fortune_teller')) {
+                window.steamAchievements.unlock('fortune_teller');
+            }
+            // Clear any previous timeouts first
+            postIDTimeouts.forEach(timeoutId => clearTimeout(timeoutId));
+            postIDTimeouts = [];
+
+            post.classList.remove("hidden");
+            fortuneInit.classList.add("hidden");
+
+            // Pass the question into the commentbox
+            text.innerHTML = FortuneInput.value.trim();
+
+            // Get current timestamp
+            timestamp.innerHTML = getFormattedTimestamp();
+
+            // Lets roll the postID, one digit at a time
+            for (let i = 0; i < 8; ++i)
+            {
+                const timeoutId = setTimeout(() => {
+                    if (i === 0) // First digit cannot be 0
+                        postID.innerHTML += Math.floor(Math.random() * 9) + 1;
+                    else
+                        postID.innerHTML += Math.floor(Math.random() * 10);
+                }, i * digitTimeout);
+
+                postIDTimeouts.push(timeoutId);
+            }
+
+            const checkTimeoutId = setTimeout(() => {
+                const repeatDigit = checkRepeatingDigits(postID.innerHTML);
+                if(repeatDigit > 1)
+                {
+                    for (let i = 0; i < repeatDigit; ++i)
+                        Yous.innerHTML += "(You) ";
+                }
+            }, 8 * digitTimeout); // Wait for all 8 digits
+            postIDTimeouts.push(checkTimeoutId);
+
+            const fortuneTimeoutId = setTimeout(() => {
+                fortune.innerHTML = "Your fortune: " + fortunes[Math.floor(Math.random() * fortunes.length)];
+                fortune.style.color = fortuneColours[Math.floor(Math.random() * fortuneColours.length)]
+            }, 8 * digitTimeout)
+            postIDTimeouts.push(fortuneTimeoutId);
+        }
+        FortuneInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") //&& FortuneInput.value.trim() // add this if we have to force people to input instead of leaving blank
+                submitQuestion();
+        });
+
+        FortuneSubmit.addEventListener("click", submitQuestion)
+    });
+</script>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        // Accessibility: take tabbing out when a card is focused
+        const defaultRadio = document.getElementById('cards-default') as HTMLInputElement;
+        const cardRadios = document.querySelectorAll('input[name="card-selected"]:not(#cards-default)');
+        const cardContainer = document.getElementById('contact-wrapper') as HTMLElement;
+
+        if (defaultRadio && cardContainer) {
+            const updateInert = () => {
+                const anyCardSelected = !defaultRadio.checked; // Check if any non-default card is selected
+
+                if (anyCardSelected)
+                    cardContainer.setAttribute('inert', '');
+                else
+                    cardContainer.removeAttribute('inert');
+            };
+
+            updateInert();
+
+            // Listen to all radio button changes
+            defaultRadio.addEventListener('change', updateInert);
+            cardRadios.forEach(radio => {
+                radio.addEventListener('change', updateInert);
+            });
+        }
+
+        // Close menu with Escape key
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && !defaultRadio?.checked) {
+                defaultRadio.checked = true;
+                defaultRadio.dispatchEvent(new Event('change'));
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+    });
+</script>
+
+<!-- Script for copy-to-clipboard functionality -->
+<script>
+    import { injectTooltipStyles, showTooltipDialogueClick } from "@components/DialogueOnClick";
+
+    document.addEventListener("astro:page-load", () => {
+        const body = document.body as HTMLElement;
+        const emailButtons = document.querySelectorAll('[data-email]');
+
+        emailButtons.forEach((button) => {
+            const email = button.getAttribute('data-email');
+            if (email) {
+                showTooltipDialogueClick(button as HTMLElement, button as HTMLElement, "Email copied to Clipboard");
+
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    navigator.clipboard.writeText(email);
+                });
+            }
+        });
+
+        injectTooltipStyles();
+    });
+</script>

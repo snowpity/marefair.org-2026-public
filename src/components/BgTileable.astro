@@ -1,0 +1,20 @@
+---
+import { Image, getImage } from 'astro:assets';
+
+import stainRaw from "@assets/bg/JUICE.png";
+const stainImg = await getImage({ src: stainRaw, format:"avif", height:350});
+
+interface Props {
+  imgSrc?: string;
+  vignette?: boolean;
+  stain?: boolean;
+  imgSize?: string;
+}
+const { imgSrc, vignette, stain, imgSize } = Astro.props;
+---
+
+<div id="bg" class="absolute w-full h-full min-h-screen -z-[1]">
+    {imgSrc ? <div class="bg-repeat w-full h-full" style={`background-image: url(${imgSrc}); background-size: ${imgSize ? imgSize : 'auto' }`}/> : ''}
+    {vignette ? <bg id="vignette" class="w-[100dvw] h-[100lvh] fixed top-0 left-0 inset-0 shadow-[inset_0_0_100px_80px_rgba(0,0,0,0.5)]"/> : ''}
+    {stain ? <div class="pointer-events-none absolute top-0 bg-repeat-x h-[350px] w-full opacity-30 mix-blend-multiply" style={`background-image: url(${stainImg.src});`}/> : ''}
+</div>

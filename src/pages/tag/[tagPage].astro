@@ -1,0 +1,33 @@
+---
+import ArticleIndex from '@layouts/ArticleIndex.astro';
+import { getCollection } from 'astro:content';
+
+export async function getStaticPaths() {
+  const newsCollection = await getCollection('news');
+
+  // Collect all tags across news posts, flatten, and remove duplicates
+  const allTags = newsCollection
+    .flatMap(post => post.data.tags?.map(tag => tag.name) || []) // extract tag names
+    .filter(Boolean); // remove null/undefined
+
+  const uniqueTags = Array.from(new Set(allTags));
+
+  return uniqueTags.map(tagPage => ({
+    params: { tagPage },
+  }));
+}
+
+const { tagPage } = Astro.params;
+const newsCollection = await getCollection('news');
+
+// Filter posts that include this tag name in their tags array
+const filteredArticle = newsCollection
+  .filter(post => {
+    const tagNames = post.data.tags?.map(tag => tag.name) || [];
+    return tagNames.includes(tagPage);
+  })
+---
+
+<ArticleIndex title={`Tag ${tagPage} | Mare Fair 2026`} newsCollection={filteredArticle} latest header=`Tag: ${tagPage}`>
+
+</ArticleIndex>

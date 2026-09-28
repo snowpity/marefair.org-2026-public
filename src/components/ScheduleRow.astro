@@ -1,0 +1,115 @@
+---
+import type { EventDetails } from "@components/ScheduleTable.astro";
+
+interface Props {
+    timeSlots: string[];
+    rowBg: string;
+    eventData: {
+        rooms: string[];
+        skipMap: Record<string, Record<string, boolean>>;
+        rowSpanMap: Record<string, Record<string, number>>;
+    };
+    events: Record<string, Record<string, EventDetails>>;
+    ratings: string[];
+    roomConfig: string[] | { primary: string; alternates: string[] }[];
+}
+
+const { roomConfig, timeSlots, ratings, events, eventData, rowBg } = Astro.props;
+
+// Normalize roomConfig to always work with the primary names
+const normalizedRoomConfig = Array.isArray(roomConfig) && typeof roomConfig[0] === 'object'
+    ? roomConfig.map((room: any) => room.primary)
+    : roomConfig;
+---
+
+<table class={`schedule-table ${rowBg}-table border-collapse min-w-full`}>
+    <thead id="schedule-header" class="sticky top-0 z-20 relative">
+        <tr class="accent-dark text-white">
+            <th class="sticky-time-header time-header-cell p-2 bg-gray-900">
+                Time
+                <div class="time-toggle-wrapper flex text-sm mt-1">
+                    <label for="half-hr-toggle" class="w-full cursor-pointer text-center transition-colors p-1 rounded-l bg-gray-600 hover:bg-gray-500">
+                        12hr
+                    </label>
+                    <label for="full-hr-toggle" class="w-full cursor-pointer text-center transition-colors p-1 rounded-r bg-gray-600 hover:bg-gray-500">
+                        24hr
+                    </label>
+                </div>
+            </th>
+            {normalizedRoomConfig.map((room) => (
+                <th class={`room-header ${rowBg}-room p-2 text-sm`}>
+                    {typeof room === 'object' ? room.primary : room}
+                </th>
+            ))}
+        </tr>
+    </thead>
+    <tbody class="relative">
+        {timeSlots.map((time, index) => (
+            <tr class="schedule-row">
+                <td class={`sticky-time-cell time-cell p-2 font-medium text-white ${index % 2 === 0 ? "bg-gray-800" : "bg-gray-900"}`} >
+                    <div class="fullHR block text-center font-bold">{time}</div>
+                    <div class="halfHR hidden text-center font-bold">{(() => {
+                        const [hours, minutes] = time.split(':').map(part => parseInt(part, 10));
+                        if (isNaN(hours) || isNaN(minutes)) return time;
+                        const period = hours >= 12 ? 'PM' : 'AM';
+                        const hours12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+                        return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
+                    })()}</div>
+                </td>
+                {eventData.rooms.map((room) => {
+                    // Always render the underlying cell (no skipping, no rowspan)
+                    const event = events[time]?.[room];
+                    const content = event?.name || "";
+                    const isSkipped = eventData.skipMap[room][time];
+                    const isEventStart = content && !isSkipped;
+                    const rowspan = eventData.rowSpanMap[room][time] || 1;
+                    const rating = Array.isArray(event?.rating) ? event?.rating[0] : event?.rating;
+                    const bg_rating = ratings.includes(rating) ? {
+                        [ratings[0]]: "bg-white/70 hover:bg-white/80 border-white",
+                        [ratings[1]]: "bg-green-300/70 hover:bg-green-400/80 border-green-400",
+                        [ratings[2]]: "bg-cyan-300/70 hover:bg-cyan-400/80 border-cyan-400",
+                        [ratings[3]]: "bg-amber-300/70 hover:bg-amber-400/80 border-amber-400",
+                        [ratings[4]]: "bg-red-300/70 hover:bg-red-300/80 border-red-300",
+                    }[rating] : "bg-white/70 hover:bg-white/80 border-white";
+
+                    return (
+                        <td
+                            class={`event-cell ${rowBg}-event border border-gray-900 relative transition-[background-color] ${index % 2 === 0 ? "bg-gray-700" : "bg-gray-800"}`}
+                            style="overflow: visible;"
+                        >
+                            {/* Overlay rendered only at the START of an event, floats over subsequent rows */}
+                            {isEventStart && (
+                                <label
+                                    for={`${content.replace(/\s+/g, '-')}-${event.startTime.toString().replace(/\s+/g, '-')}-toggle`}
+                                    class={`event-overlay  ${bg_rating} `}
+                                    style={`--span: ${rowspan};`}
+                                >
+                                    <span class="event-title" style={`-webkit-line-clamp: ${rowspan * 1.5};`}>{content}</span>
+                                </label>
+                            )}
+                        </td>
+                    );
+                })}
+            </tr>
+        ))}
+    </tbody>
+</table>
+
+<style>
+    @reference "tailwindcss";
+    .event-overlay {
+        @apply absolute top-0 left-0 right-0 p-2 cursor-pointer text-center flex items-center justify-center transition-[background-color,box-shadow] rounded-md border-3 z-10 hover:shadow-[0_0_10px_rgba(256,256,256,0.5)] overflow-hidden;
+
+        /* Height = number of spanned rows × row height, minus 1px for border gaps */
+        height: calc(var(--span, 1) * 2.5rem - 1px);
+        /* Ensure it floats above the rows below */
+        z-index: 5;
+    }
+
+    .event-title {
+        @apply block max-w-full overflow-hidden text-ellipsis break-words leading-tight;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 4;
+    }
+</style>

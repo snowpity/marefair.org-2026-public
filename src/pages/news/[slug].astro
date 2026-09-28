@@ -1,0 +1,169 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from "@layouts/Layout.astro";
+import BgTileable from '@components/BgTileable.astro';
+import { Icon } from 'astro-icon/components';
+
+import { getCollection } from 'astro:content';
+import { marked } from 'marked';
+import { getEntry } from "astro:content";
+import type { NewsArticle } from '@data/NewsArticle';
+import type { SEO } from "@data/SEO";
+
+declare global {
+    interface Window {
+        copyToClipboard: () => void;
+    }
+}
+
+export async function getStaticPaths() {
+    const newsCollection = await getCollection('news');
+    return newsCollection.map((entry: any) => ({
+        params: { slug: entry.data.slug },
+    }));
+}
+
+const { slug } = Astro.params;
+
+const entry = await getEntry('news', slug);
+
+// This should not be possible thanks to Astro statically built router, but just in case
+if (!entry) return new Response(null, { status: 404 });
+
+const article: NewsArticle = entry.data;
+
+// Get the first (oldest) news article
+const allNews = await getCollection('news');
+const sortedNews = allNews.sort((a, b) =>
+    new Date(a.data.createdAt).getTime() - new Date(b.data.createdAt).getTime()
+);
+const firstNewsSlug = sortedNews[0]?.data.slug;
+const isFirstNews = slug === firstNewsSlug;
+
+// Convert the Markdown content to HTML
+const htmlContent = marked(article.content);
+
+// Metadata for SEO
+const SEOData: SEO = {
+    site: 'https://marefair.org',
+    site_name: "Mare Fair 2026",
+    title: article.title,
+    image: article.heroImage,
+    description: article.previewText,
+};
+
+import woodRaw from "@assets/bg/wood.png";
+const wood = await getImage({ src: woodRaw, format:"png", height:2048});
+---
+
+<Layout title={`${article.title} | Mare Fair 2026`} backgroundClass="bg-news-brick-texture" seo={SEOData}>
+    <BgTileable imgSrc={wood.src} vignette stain/>
+
+    <div id="main" class="flex items-center justify-center min-h-screen p-8 pt-20">
+        <!-- Main Article Container -->
+        <div class="relative bg-[#F4EDEF] shadow-hard rounded-xl w-full max-w-4xl">
+            <!-- "Menu" Button -->
+            <div class="absolute -top-2 -left-6 rotate-[-5deg] overflow-visible">
+                <a href="/" class="top-button shadow-hard">
+                    <Icon name="mdi:home-outline"/>
+                    <div class="max-[450px]:hidden"> Main </div>
+                </a>
+            </div>
+
+            <!-- "Articles" Button -->
+            <div class="absolute -top-4 left-1/2 transform -translate-x-1/2 rotate-[0deg] overflow-visible">
+                <a href="/news" class="top-button shadow-hard">
+                <Icon name="mdi:newspaper-variant"/>
+                <div class="max-[450px]:hidden"> News </div>
+                </a>
+            </div>
+
+            <!-- "Share" Button -->
+            <div class="absolute -top-2 -right-6 rotate-[5deg] overflow-visible">
+                <button id="link" class="dialogue top-button shadow-hard cursor-pointer">
+                    <Icon name="mdi:share-variant-outline"/>
+                    <div class="max-[450px]:hidden"> Link </div>
+                </button>
+            </div>
+
+            <!-- Article Content -->
+            <div class="p-8 pt-11 px-5 md:px-8">
+                <h1 class="text-4xl font-bold mb-4 text-left">{article.title}</h1>
+                <p class="text-sm text-gray-500 mb-8 text-left">
+                    Published on: {new Date(article.createdAt).toLocaleDateString()}
+                </p>
+                <article class="prose lg:prose-xl text-left text-gray-600 font-serif merriweather-regular min-w-full">
+                    <div set:html={htmlContent}></div>
+                </article>
+
+                <!-- Le tags -->
+                { article.tags ? (
+                <p class="text-sm text-gray-500 text-left mt-20">
+                    Tags:
+                </p>
+                ) : ''}
+                <div id="tags" class="space-x-2 mt-2">
+                {article.tags?.map((tag: any) => (
+                    <a href={`/tag/${tag.name}`} class="tag">{tag.name} </a>
+                ))}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen" class="fixed top-0 left-0 w-screen h-screen" inert></div>
+</Layout>
+<!-- Script for copy-to-clipboard functionality -->
+<script>
+    import { injectTooltipStyles, showTooltipDialogueClick } from "@components/DialogueOnClick";
+    document.addEventListener("astro:page-load", () => {
+        const main = document.getElementById('screen') as HTMLElement;
+        const link = document.getElementById('link') as HTMLElement;
+
+        showTooltipDialogueClick(main, link, "Link copied to Clipboard", undefined, true);
+
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            navigator.clipboard.writeText(window.location.href);
+        });
+
+        injectTooltipStyles();
+    });
+</script>
+
+<script define:vars={{ isFirstNews }}>
+    document.addEventListener("astro:page-load", () => {
+        // ACHIEVEMENT: Read the first news article
+        if (isFirstNews && window.steamAchievements && !window.steamAchievements.isUnlocked('first_news')) {
+            window.steamAchievements.unlock('first_news');
+        }
+    });
+</script>
+
+<style>
+    @reference "tailwindcss";
+    .shadow-hard {
+        box-shadow: 6px 10px 0px rgba(0, 0, 0, 0.5);
+    }
+
+    .top-button {
+        @apply bg-gray-200 text-lg px-6 py-2 rounded-md hover:bg-gray-300 transform transition-transform duration-200 hover:scale-105 flex items-center gap-2;
+    }
+
+    a, button {
+        text-align: center;
+        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .marker-like {
+        color: #4a4a4a;
+        font-family: 'Permanent Marker', cursive, serif;
+    }
+
+    .tag {
+        @apply bg-gray-300 hover:bg-gray-400 hover:underline rounded-full p-5 leading-0
+    }
+</style>

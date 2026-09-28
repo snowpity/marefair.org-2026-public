@@ -1,0 +1,221 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+import { Icon } from 'astro-icon/components'
+import ScrapbookOverlay from '@components/ScrapbookOverlay.astro';
+
+// The aspects of the dominant BG
+const ratio = 6012 / 9138;
+const width = 2560; // QHD
+const scale = width / 6012;
+const height= width / ratio;
+
+import underline from '@assets/about/asset_underline.png';
+import wax_seal from '@assets/about/asset_wax_seal.png';
+
+const images = [
+    {
+        'name': 'img1',
+        'src': "https://fair-filer.marefair.org/2026/about/img2.jpg",
+        'alt': 'Charity Auction',
+        'description': 'Photographer: DashiePinkie',
+    },
+    {
+        'name': 'img2',
+        'src': "https://fair-filer.marefair.org/2026/about/img1.jpg",
+        'alt': 'Tower of Mimosa',
+        'description': 'Photographer: Estonia',
+    },
+    {
+        'name': 'img3',
+        'src': "https://fair-filer.marefair.org/2026/about/newFrames/DSCF4743.jpg",
+        'alt': 'Chatting',
+        'description': 'Photographer: Estonia',
+    },
+    {
+        'name': 'img4',
+        'src': "https://fair-filer.marefair.org/2026/about/newFrames/Marefair--93.jpg",
+        'alt': 'Plushie workshop',
+        'description': 'Photographer: Estonia',
+    },
+]
+
+import BgParallaxComplex from '@components/BgParallaxComplex.astro';
+
+import asset_background_01 from '@assets/about/asset_background_01.png';
+import asset_background_02 from '@assets/about/asset_background_02.png';
+import asset_candles from '@assets/about/asset_candles.png';
+import asset_candles_animated from '@assets/about/asset_candles_animated.avif';
+import asset_candles_apple from '@assets/about/apple-candles-1451.webp';
+const parallaxLayers = [
+    {
+        offset: '0%',
+        imgSrc: asset_background_01 ,
+        location: "left",
+        width: 2157 * scale,
+        height: 7657 * scale,
+    },
+    {
+        offset: '0%',
+        imgSrc: asset_background_02,
+        location: "center",
+        width: width,
+    },
+    {
+        offset: '-275%',
+        imgSrc: asset_candles_animated,
+        location: "center",
+        width: 3407 * scale,
+        height: 2640 * scale,
+        class: 'mt-300 lg:block hidden z-10 before:animate-pulse',
+        wrapperClass: "animate-[sine-wave_10s_ease-in-out_infinite]",
+        noCompression: true,
+        id: "candle"
+    },
+];
+
+import asset_frame_01 from '@assets/about/asset_frame_01.png';
+import asset_frame_02 from '@assets/about/asset_frame_02.png';
+import asset_frame_03 from '@assets/about/asset_frame_03.png';
+import asset_frame_04 from '@assets/about/asset_frame_04.png';
+import asset_frame_extra_01 from '@assets/about/asset_frame_extra_01.png';
+import asset_frame_extra_02 from '@assets/about/asset_frame_extra_02.png';
+
+---
+
+<Layout title="About Us | Mare Fair 2026">
+    <BgParallaxComplex parallaxLayers={parallaxLayers} imageHeight={height} sideVignette imageWidth={width} hasMinHeight/>
+
+    <Image id="candle_static" src={asset_candles} width={1451} alt="" class="hidden" inert/> <!-- A dummy object to store the dynamically compressed image to replace on Apple Devices -->
+
+<div id="text" class="absolute w-[800px] flex flex-col items-center top-[4%] center-horizontally max-w-screen h-fit rounded-3xl">
+    <div class="relative w-fit h-fit my-[5%]">
+        <Image src={underline} width={1058 * scale} format="avif" alt="" inert/>
+        <p class="absolute center-horizontally top-0 text-[#f8d8b2] uline:text-6xl text-[13.5vw] leading-none whitespace-nowrap tagesschrift-regular"> ABOUT US </p>
+    </div>
+    <div id="text-body" class="px-[5%] sm:text-2xl text-1xl text-white">
+        <p class="">
+            <b>Mare Fair</b> is a convention for adult fans of <i> My
+            Little Pony: Friendship is Magic</i> dedicated to
+            celebrating our <b>love of ponies</b> and all the amazing
+            people that continue to make the ride what it is - <b>that means you!</b>
+            <br><br>
+            We strive to deliver a convention that is
+            memorable and unique! We don't have VIP guests,
+            guests of honor, or community guests, instead we
+            foster an environment where you and your friends can
+            get together for a fun weekend focused on <b>ponies.</b>
+        </p>
+        <Image src={wax_seal} width={364 * scale} format="avif" alt="Wax Seal" class="absolute right-0" inert/>
+    </div>
+</div>
+
+<div class="md:w-[800px] w-screen center-horizontally h-fit absolute top-[25%] md:grid flex flex-col gap-2.5" style="grid-template-columns: repeat(24, 25px); grid-auto-flow: dense;">
+    <Image src={asset_frame_extra_01} width={865 * scale} format="avif" alt="frame1" class="md:block hidden" style="grid-row: 1 / span 32; grid-column: 14 / span 24;" inert/>
+    <Image src={asset_frame_extra_02} width={648 * scale} format="avif" alt="frame1" class="md:block hidden" style="grid-row: 42 / span 18; grid-column: 3 / span 18;" inert/>
+
+    <a href={`#${images[0].name.replace(/\s+/g, '')}`} aria-label={`View ${images[0].name}`} class="thumbnail-wrapper frame-item hover:animate-wiggle" style="grid-row: 1 / span 24; grid-column: 1 / span 13;">
+        <Image src={asset_frame_01} width={1057 * scale} format="avif" alt="frame1" class="md:mx-0 mx-auto" inert/>
+    </a>
+    <a href={`#${images[1].name.replace(/\s+/g, '')}`} aria-label={`View ${images[1].name}`} class="thumbnail-wrapper frame-item hover:animate-wiggle" style="grid-row: 14 / span 18; grid-column: 14 / span 16;">
+        <Image src={asset_frame_02} width={1010 * scale} format="avif" alt="frame2" class="md:mx-0 mx-auto" inert/>
+    </a>
+    <a href={`#${images[2].name.replace(/\s+/g, '')}`} aria-label={`View ${images[2].name}`} class="thumbnail-wrapper frame-item hover:animate-wiggle" style="grid-row: 25 / span 18; grid-column: 1 / span 13;">
+        <Image src={asset_frame_03} width={995 * scale} format="avif" alt="frame2" class="md:mx-0 mx-auto" inert/>
+    </a>
+    <a href={`#${images[3].name.replace(/\s+/g, '')}`} aria-label={`View ${images[3].name}`} class="thumbnail-wrapper frame-item hover:animate-wiggle" style="grid-row: 31 / span 24; grid-column: 14 / span 16;">
+        <Image src={asset_frame_04} width={970 * scale} format="avif" alt="frame2" class="md:mx-0 mx-auto" inert/>
+    </a>
+</div>
+
+{images.map((image, index) => (
+    <ScrapbookOverlay
+        image={image}
+        prevName={index > 0 ? images[index - 1].name.replace(/\s+/g, '') : undefined}
+        nextName={index < images.length - 1 ? images[index + 1].name.replace(/\s+/g, '') : undefined}
+    />
+))}
+</Layout>
+
+<style is:global>
+    @reference "tailwindcss";
+    #bgWrapper {
+        height: var(--img-height);
+    }
+    .center-horizontally{
+        @apply left-1/2 -translate-x-1/2;
+    }
+
+    .fixed-size {
+        @apply w-auto max-w-none;
+        object-fit: none;
+        height: var(--img-height);
+    }
+
+
+
+
+
+
+
+    .thumbnail {
+        @apply max-w-[300px] max-h-[300px] filter drop-shadow-lg m-4 bg-[rgb(256,256,256,0.2)] rounded-lg hover:shadow-[0_0_15px_5px_rgba(75,0,130,0.7)] hover:shadow-violet-900 transition-all duration-300 hover:rotate-0 hover:scale-110;
+    }
+    .thumbnail-header {
+        @apply filter drop-shadow-lg transition-all duration-300 hover:scale-105;
+    }
+
+    body {
+        background: #333;
+        font-size: 1.125rem;
+    }
+
+    .container h1 {
+        text-shadow: 4px 4px 1px black;
+    }
+
+    .container .content ul li a:hover .thumbs-name {
+        opacity: 1;
+        transform: rotate(360deg) scale(1);
+    }
+
+    .frame-item {
+        @apply transition-transform duration-500 hover:z-50 hover:drop-shadow-[0_0_10px_rgb(256,256,256)] /*bg-red-800*/;
+    }
+
+    @media (max-width: 767px) { /* Tailwind's medium */
+        .frame-item {
+            grid-column: 1 / -1 !important; /* Forces items to span full width */
+            width: 80%;
+            margin-left: auto;
+            margin-right:auto;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        // Dynamically replacing image with static version on Apple (Safari) devices. Flay all iToddlers.
+        const isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
+
+        if (isSafari) {
+            const candleElem = document.getElementById("candle") as HTMLImageElement;
+            const candleElemStatic = document.getElementById("candle_static") as HTMLImageElement;
+
+            candleElem.src = candleElemStatic.src;
+        }
+    });
+</script>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        document.querySelectorAll('a.thumbnail-wrapper').forEach(a => {
+            a.addEventListener('keydown', (e: any) => {
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    (a as HTMLElement).click();
+                }
+            });
+        });
+    });
+</script>

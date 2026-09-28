@@ -1,0 +1,617 @@
+---
+import { Icon } from 'astro-icon/components'
+import Layout from "@layouts/Layout.astro";
+import { Image, getImage } from "astro:assets";
+
+import { getAssignment, generateTableMaps, generateTimeSlots, separateAssignments, type EventDetails, combineAssignments } from '@components/ScheduleTable.astro';
+import ScheduleRow from '@components/ScheduleRow.astro';
+import ScheduleModal from '@components/ScheduleModal.astro';
+import BgTileable from '@components/BgTileable.astro';
+import { generateScheduleExcel } from '@scripts/generate-schedule-Excel.ts';
+
+import woodRaw from "@assets/bg/wood.png";
+
+//import scheduleData from '@data/schedules/panel.json';
+const wood = await getImage({ src: woodRaw, format:"png", height:2048});
+
+const ENABLE_MY_SCHEDULE = true;
+const MySchedule = ENABLE_MY_SCHEDULE
+    ? (await import('@components/MySchedule.astro')).default
+    : null;
+
+// Generate time slots in 30-minute increments
+const timeSlots = generateTimeSlots(9,27); // 9 AM to 3 AM
+
+// Configure the rooms, by order, and their alternate names
+const roomConfig = [
+    {
+        primary: "Mare Stage",
+        alternates: ["Mare Events","Mare Stage (Palm 1/2)"]
+    },
+    /*
+    {
+        primary: "Floor Bored's Wizard Tower",
+        alternates: [""]
+    },
+    */
+    {
+        primary: "Dark Lord Anon's OC Dungeon",
+        alternates: ["Dark Lord Anon's OC Dungeon (Grand IV/V)"]
+    },
+    {
+        primary: "Crypt Of The Undead Conventions",
+        alternates: ["Crypt of the Undead Conventions (Grand II/III)"]
+    },
+    {
+        primary: "Fair Flyer's Fairy Ring",
+        alternates: ["Fair Flyer's Fairy Ring (Grand I)"]
+    },
+    {
+        primary: "Nasapone's Tinkering Tent",
+        alternates: ["Nasapone's Tinkering Tent (Grand VII/VIII)"]
+    },
+    {
+        primary: "Renegade Stage",
+        alternates: ["Renegade Stage (Grand VI)"]
+    },
+    {
+        primary: "Sunbeam Sanctum",
+        alternates: ["Sunbeam Sanctum (Camellia/Dogwood)"]
+    },
+    {
+        primary: "Fun Raiser's Levitation Station",
+        alternates: ["Fun Raiser's Levitation Station (Fuchsia/Gardenia)"]
+    },
+    {
+        primary: "Vendor Stalls",
+        alternates: ["Arrhythmia's Bat Pony Bordello (International South)","Vendor Stalls (International North/Center)"]
+    },
+    {
+        primary: "Registration",
+        alternates: [""]
+    },
+    {
+        primary: "Floor Bored's Wizard Tower",
+        alternates: ["Floor Bored's Battle Station (Palm 3/4)"]
+    },
+    {
+        primary: "Mare Gallery",
+        alternates: ["Mare Gallery (Narcissus/Orange Blossom)"]
+    },
+    {
+        primary: "Marechandise Store",
+        alternates: ["Marechandise (Palm 5)"]
+    },
+    {
+        primary: "Gatormare's Charity Hoard",
+        alternates: ["Gatormare's Charity Hoard (Crystal)"]
+    },
+];
+
+// Put the rating string displayed by the API here
+const ratings = [
+    "Unrated",
+    "Safe - Nothing sexual.",
+    "Suggestive - slightly sexual topics and innuendo.",
+    "Questionable - sexual discussion but nothing displayed on monitors.",
+    "Explicit - we're going to be showing clop images and/or reading actual clop fics."
+]
+
+// Fetch schedule data from API and store it
+const SCHEDULE_API = import.meta.env.SCHEDULE_API + "?c=panel";
+const response = await fetch(SCHEDULE_API);
+const scheduleData = await response.json();
+
+
+//console.log("Schedule data:", scheduleData);
+
+const MUSICIAN_API = import.meta.env.SCHEDULE_API + "?c=musician";
+const responseMusician = await fetch(MUSICIAN_API);
+const musicianData = await responseMusician.json();
+
+// Separate assignments by day using specific date ranges
+const fridayPanels = separateAssignments(scheduleData.assignments, "2026-08-28 08:00:00", "2026-08-29 04:00:00");
+const saturdayPanels = separateAssignments(scheduleData.assignments, "2026-08-29 08:00:00", "2026-08-30 04:00:00");
+const sundayAssignments = separateAssignments(scheduleData.assignments, "2026-08-30 08:00:00", "2026-08-31 04:00:00");
+
+const fridayMusicians = separateAssignments(musicianData.assignments, "2026-08-28 08:00:00", "2026-08-29 04:00:00");
+const saturdayMusicians = separateAssignments(musicianData.assignments, "2026-08-29 08:00:00", "2026-08-30 04:00:00");
+
+// Combine schedule and musician
+const fridayAssignments = combineAssignments(fridayPanels, fridayMusicians);
+const saturdayAssignments = combineAssignments(saturdayPanels, saturdayMusicians);
+
+// Mapping the table, first pre-process the API to Record datatype, then use it to map the days.
+const fridayEvents: Record<string, Record<string, EventDetails>> = await getAssignment(fridayAssignments, roomConfig)
+const friday = generateTableMaps(timeSlots, fridayEvents);
+const saturdayEvents: Record<string, Record<string, EventDetails>> = await getAssignment(saturdayAssignments, roomConfig)
+const saturday = generateTableMaps(timeSlots, saturdayEvents);
+const sundayEvents: Record<string, Record<string, EventDetails>> = await getAssignment(sundayAssignments, roomConfig)
+const sunday = generateTableMaps(timeSlots, sundayEvents);
+
+// Generate Excel at build time
+const excelHref = await generateScheduleExcel(
+    { Friday: fridayEvents, Saturday: saturdayEvents, Sunday: sundayEvents },
+    timeSlots,
+    roomConfig.map(r => r.primary),
+);
+
+---
+
+<Layout title="Schedule | Mare Fair 2026">
+    <BgTileable imgSrc={wood.src} vignette stain/>
+    <input type="radio" name="schedule-event-toggle" id="default-event-toggle" class="hidden" checked />
+
+    {/* Event modals */}
+    <div class="reddit-sans relative z-50">
+        {(() => {
+            const processedEvents = new Set();
+            const allDays = [
+                { day: 'Friday', events: fridayEvents},
+                { day: 'Saturday', events: saturdayEvents},
+                { day: 'Sunday', events: sundayEvents}
+            ];
+
+            return allDays.flatMap(({ day, events }) =>
+                Object.keys(events).flatMap((timeSlot) =>
+                    Object.values(events[timeSlot])
+                        .filter(event => {
+                            if (event.name === "") return false;
+                            return !processedEvents.has(`${event.name}-${event.startTime.toString().replace(/\s+/g, '-')}`);
+                        })
+                        .map(event => {
+                            processedEvents.add(`${event.name}-${event.startTime.toString().replace(/\s+/g, '-')}`);
+                            return <ScheduleModal event={event} ratings={ratings} day={day} enableMySchedule={ENABLE_MY_SCHEDULE} />;
+                        })
+                )
+            );
+        })()}
+    </div>
+
+    {/* My Schedule Drawer */}
+    {MySchedule && <MySchedule />}
+
+    <div class="relative overflow-hidden flex justify-center items-center w-screen h-auto">
+        {/* Header spacing fix */}
+    </div>
+
+    <div class="relative z-10 container mx-auto sm:my-6 m-0 reddit-sans">
+        {/* Day toggles */}
+        <input type="radio" name="day-toggle" id="fri-block-toggle" class="hidden" checked/>
+        <input type="radio" name="day-toggle" id="sat-block-toggle" class="hidden"/>
+        <input type="radio" name="day-toggle" id="sun-block-toggle" class="hidden"/>
+
+        {/* Time format toggle */}
+        <input type="radio" name="time-toggle" id="full-hr-toggle" class="hidden"/>
+        <input type="radio" name="time-toggle" id="half-hr-toggle" class="hidden" checked/>
+
+        {/* Title and Legend */}
+        <div class="w-full accent-dark text-white rounded-t-lg hidden sm:block">
+            <!-- <h1 class="flex justify-center md:text-[10rem] sm:text-[6rem] text-[18vw]">SCHEDULE</h1> -->
+            <div class="flex justify-center flex-wrap max-w-xs mx-auto sm:max-w-none sm:flex-row sm:space-x-4 gap-2 sm:gap-0 py-5">
+                <div class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                    <div class="bg-green-300 w-4 h-4"></div>
+                    <div>Safe</div>
+                </div>
+                <div class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                    <div class="bg-cyan-300 w-4 h-4"></div>
+                    <div>Suggestive</div>
+                </div>
+                <div class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                    <div class="bg-amber-300 w-4 h-4"></div>
+                    <div>Questionable</div>
+                </div>
+                <div class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                    <div class="bg-red-300 w-4 h-4"></div>
+                    <div>Explicit</div>
+                </div>
+            </div>
+        </div>
+
+        <a href={excelHref} title="Download Excel Schedule" class="absolute top-0 left-0 m-1 p-1 rounded-xl bg-black/50"> <Icon name="mdi:microsoft-excel" class="text-white text-5xl"/> </a>
+
+        {/* My Schedule Button */}
+        {ENABLE_MY_SCHEDULE && (
+            <button
+                id="open-my-schedule-btn"
+                title="View My Schedule"
+                class="absolute js-only top-0 left-14 m-1 p-1 rounded-xl bg-black/50 hover:bg-black/70 transition-colors flex items-center gap-1.5 pr-3 cursor-pointer"
+            >
+                <Icon name="mdi:calendar-star" class="text-white text-5xl"/>
+                <span id="my-schedule-badge" class="hidden bg-amber-400 text-black text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">0</span>
+            </button>
+        )}
+
+        <noscript>
+            <style>
+                .js-only { display: none !important; }
+            </style>
+        </noscript>
+
+        {/* Day selection toggles */}
+        <div id="day-toggler" class="flex w-full accent-light relative text-white">
+            <div id="fri-toggle" class="toggleable w-1/3 h-10 flex items-center justify-center">
+                <label for="fri-block-toggle" class="w-full h-full cursor-pointer text-center flex items-center justify-center font-bold">
+                    Friday
+                </label>
+            </div>
+            <div id="sat-toggle" class="toggleable w-1/3 h-10 flex items-center justify-center">
+                <label for="sat-block-toggle" class="w-full h-full cursor-pointer text-center flex items-center justify-center font-bold">
+                    Saturday
+                </label>
+            </div>
+            <div id="sun-toggle" class="toggleable w-1/3 h-10 flex items-center justify-center">
+                <label for="sun-block-toggle" class="w-full h-full cursor-pointer text-center flex items-center justify-center font-bold">
+                    Sunday
+                </label>
+            </div>
+        </div>
+
+        {/* Scroll indicator */}
+
+        {/* Scrollable table container */}
+        <div class="schedule-table-wrapper relative overflow-x-auto overflow-y-auto border border-gray-900 rounded-b-lg h-[calc(100dvh-2.5rem)] sm:h-[calc(100dvh-152px)] overscroll-none">
+
+            {/* Friday Table */}
+            <ScheduleRow
+                timeSlots={timeSlots}
+                rowBg="friday"
+                eventData={friday}
+                events={fridayEvents}
+                ratings={ratings}
+                roomConfig={roomConfig}
+            />
+
+            {/* Saturday Table */}
+            <ScheduleRow
+                timeSlots={timeSlots}
+                rowBg="saturday"
+                eventData={saturday}
+                events={saturdayEvents}
+                ratings={ratings}
+                roomConfig={roomConfig}
+            />
+
+            {/* Sunday Table */}
+            <ScheduleRow
+                timeSlots={timeSlots}
+                rowBg="sunday"
+                eventData={sunday}
+                events={sundayEvents}
+                ratings={ratings}
+                roomConfig={roomConfig}
+            />
+
+        </div>
+    </div>
+
+    {/* My Schedule Button */}
+    {ENABLE_MY_SCHEDULE && (
+        <button
+            id="toggle-schedule-btn"
+            title="View My Schedule"
+            class="sm:hidden block fixed top-15 left-0 js-only z-9999 w-14 h-14 m-2 rounded-xl bg-black/50 hover:bg-black/70 transition-colors flex items-center justify-center cursor-pointer pointer-events-auto"
+        >
+            <Icon name="mdi:calendar-star" class="text-white text-5xl"/>
+        </button>
+    )}
+</Layout>
+
+<style is:global>
+    @reference "tailwindcss";
+    #footer-space {
+        display: none;
+    }
+    .accent-light{
+        @apply bg-gray-700;
+    }
+    .accent-dark{
+        @apply bg-gray-900;
+    }
+
+    .schedule-table-wrapper {
+        contain: layout paint;
+    }
+
+    /* Drag-to-scroll (desktop only, pointer:fine is used to check) */
+    @media (pointer: fine) {
+        .schedule-table-wrapper.is-dragging {
+            @apply cursor-grab select-none;
+        }
+    }
+
+    .schedule-table {
+        min-width: 800px;
+        display: none;
+        table-layout: fixed;
+    }
+
+    .event-overlay {
+        contain: layout paint;
+        will-change: transform;
+    }
+
+    /* Day toggle system */
+    #fri-block-toggle:checked ~ .schedule-table-wrapper .friday-table {
+        display: table;
+    }
+
+    #sat-block-toggle:checked ~ .schedule-table-wrapper .saturday-table {
+        display: table;
+    }
+
+    #sun-block-toggle:checked ~ .schedule-table-wrapper .sunday-table {
+        display: table;
+    }
+
+    .toggleable{
+        @apply transition-all duration-300 rounded-md;
+    }
+
+    /* Day selector styling */
+    .day-selector label {
+        transition: all 0.2s ease;
+    }
+
+    /* When Friday is selected */
+    #fri-block-toggle:checked ~ table #fri-block {
+        @apply table-row-group;
+    }
+
+    #fri-block-toggle:checked ~ #day-toggler #fri-toggle {
+        @apply bg-gray-800;
+    }
+
+    /* When Saturday is selected */
+    #sat-block-toggle:checked ~ table #sat-block {
+        @apply table-row-group;
+    }
+
+    #sat-block-toggle:checked ~ #day-toggler #sat-toggle {
+        @apply bg-gray-800;
+    }
+
+    /* When Sunday is selected */
+    #sun-block-toggle:checked ~ table #sun-block {
+        @apply table-row-group;
+    }
+
+    #sun-block-toggle:checked ~ #day-toggler #sun-toggle {
+        @apply bg-gray-800;
+    }
+
+    /* Sticky time column */
+    .sticky-time-header,
+    .sticky-time-cell {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        min-width: 10px;
+    }
+
+    /* Event cells */
+    .event-cell {
+        @apply max-h-16 min-w-28 max-w-28;
+        vertical-align: top;
+    }
+
+    /* Room header styling */
+    .room-header {
+        @apply md:max-w-none lg:w-[15%] min-w-40 max-w-40 font-bold text-base;
+        writing-mode: horizontal-tb;
+        white-space: normal;
+        overflow: visible;
+        word-wrap: break-word;
+    }
+
+    /* Time display toggles */
+    .fullHR {
+        @apply block;
+    }
+
+    .halfHR {
+        @apply hidden;
+    }
+
+    #full-hr-toggle:checked ~ .schedule-table-wrapper .time-cell .fullHR {
+        @apply block;
+    }
+    #full-hr-toggle:checked ~ .schedule-table-wrapper .time-cell .halfHR {
+        @apply hidden;
+    }
+
+    #half-hr-toggle:checked ~ .schedule-table-wrapper .time-cell .fullHR {
+        @apply hidden;
+    }
+    #half-hr-toggle:checked ~ .schedule-table-wrapper .time-cell .halfHR {
+        @apply block;
+    }
+
+    #full-hr-toggle:checked ~ .schedule-table-wrapper .time-toggle-wrapper label[for="full-hr-toggle"] {
+        @apply bg-gray-500;
+    }
+
+    #half-hr-toggle:checked ~ .schedule-table-wrapper .time-toggle-wrapper label[for="half-hr-toggle"] {
+        @apply bg-gray-500;
+    }
+
+    .absolute-centered{
+        @apply absolute left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2;
+    }
+
+    /* Modal system */
+    input[type="radio"][name="schedule-event-toggle"]:checked + div {
+        @apply fixed block pointer-events-auto ;
+    }
+</style>
+
+<script>
+    function autoSelectDay() {
+        const day = new Date().getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+        if (day === 6) {
+            (document.getElementById('sat-block-toggle') as HTMLInputElement).checked = true;
+        } else if (day === 0) {
+            (document.getElementById('sun-block-toggle') as HTMLInputElement).checked = true;
+        }
+    }
+
+    // -- Current-time red line -------------------------------------------------
+    const SCHEDULE_START_HOUR = 9;    // 9:00 AM EST
+    const SCHEDULE_END_HOUR   = 26.5; // 2:30 AM EST (next day)
+    const PX_PER_MIN          = 40 / 15; //  40 px per 15 minutes in the schedule table
+
+    function getESTHour(): number {
+        const parts = Object.fromEntries(
+            new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/New_York',
+                hour: 'numeric', minute: 'numeric', second: 'numeric',
+                hour12: false,
+            }).formatToParts(new Date()).map(p => [p.type, p.value])
+        );
+        let h = parseInt(parts.hour) + parseInt(parts.minute) / 60 + parseInt(parts.second) / 3600;
+        if (h < SCHEDULE_START_HOUR) h += 24; // post-midnight = 24+
+        return h;
+    }
+
+    function updateTimeLine() {
+        const line    = document.getElementById('time-line') as HTMLElement | null;
+        const wrapper = document.querySelector('.schedule-table-wrapper') as HTMLElement | null;
+        if (!line || !wrapper) return;
+
+        const h = getESTHour();
+        if (h < SCHEDULE_START_HOUR || h > SCHEDULE_END_HOUR) {
+            line.style.display = 'none';
+            return;
+        }
+
+        const headerHeight = 72;
+        const topOffset    = headerHeight + (h - SCHEDULE_START_HOUR) * 60 * PX_PER_MIN;
+
+        line.style.display = 'block';
+        line.style.top     = `${topOffset}px`;
+    }
+
+    function syncTimeLineScroll() {
+        const line    = document.getElementById('time-line') as HTMLElement | null;
+        const wrapper = document.querySelector('.schedule-table-wrapper') as HTMLElement | null;
+        if (!line || !wrapper) return;
+        line.style.left  = `${wrapper.scrollLeft}px`;
+    }
+
+    function initTimeLine() {
+        const wrapper = document.querySelector('.schedule-table-wrapper');
+        if (!wrapper) return;
+        if (!document.getElementById('time-line')) {
+            const line = document.createElement('div');
+            line.id    = 'time-line';
+            wrapper.appendChild(line);
+        }
+        updateTimeLine();
+        syncTimeLineScroll();
+        setInterval(updateTimeLine, 30_000);
+        wrapper.addEventListener('scroll', syncTimeLineScroll);
+        window.addEventListener('resize', syncTimeLineScroll);
+    }
+
+    // -- Click-and-drag panning (desktop only) -------------------------------
+    const DRAG_CLICK_THRESHOLD = 5; // px of movement before we treat it as a drag, not a click
+
+    function initDragToScroll() {
+        const wrapper = document.querySelector('.schedule-table-wrapper') as HTMLElement | null;
+        if (!wrapper)
+            return;
+
+        // Only enable on devices with a real mouse (skip touchscreens, which already scroll natively)
+        if (!window.matchMedia('(pointer: fine)').matches)
+            return;
+
+        // Avoid double-binding if this runs again after an astro page swap
+        if (wrapper.dataset.dragScrollInit === 'true')
+            return;
+        wrapper.dataset.dragScrollInit = 'true';
+
+        let isPointerDown = false;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let startScrollLeft = 0;
+        let startScrollTop = 0;
+
+        const onPointerDown = (e: MouseEvent) => {
+            if (e.button !== 0) return; // left mouse button only
+            isPointerDown = true;
+            isDragging = false;
+            startX = e.clientX;
+            startY = e.clientY;
+            startScrollLeft = wrapper.scrollLeft;
+            startScrollTop = wrapper.scrollTop;
+        };
+
+        const onPointerMove = (e: MouseEvent) => {
+            if (!isPointerDown) return;
+
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            if (!isDragging) {
+                if (Math.abs(dx) < DRAG_CLICK_THRESHOLD && Math.abs(dy) < DRAG_CLICK_THRESHOLD) return;
+                isDragging = true;
+                wrapper.classList.add('is-dragging');
+            }
+
+            e.preventDefault();
+            wrapper.scrollLeft = startScrollLeft - dx;
+            wrapper.scrollTop = startScrollTop - dy;
+        };
+
+        const endDrag = () => {
+            if (isDragging) {
+                wrapper.classList.remove('is-dragging');
+                // Swallow the click that follows the drag so it doesn't trigger
+                // an event label/modal underneath the cursor.
+                const suppressClick = (e: MouseEvent) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.removeEventListener('click', suppressClick, true);
+                };
+                window.addEventListener('click', suppressClick, true);
+                setTimeout(() => window.removeEventListener('click', suppressClick, true), 0);
+            }
+            isPointerDown = false;
+            isDragging = false;
+        };
+
+        wrapper.addEventListener('mousedown', onPointerDown);
+        window.addEventListener('mousemove', onPointerMove);
+        window.addEventListener('mouseup', endDrag);
+        wrapper.addEventListener('mouseleave', endDrag);
+    }
+
+    document.addEventListener("astro:page-load", () => { autoSelectDay(); initTimeLine(); initDragToScroll(); });
+    document.addEventListener("astro:after-swap", () => { autoSelectDay(); initTimeLine(); initDragToScroll(); });
+</script>
+
+<style is:global>
+    #time-line {
+        position: absolute;
+        left: 0;
+        height: 2px;
+        background: #ef4444;
+        z-index: 10;
+        pointer-events: none;
+        display: none;
+        width: 100%;
+    }
+
+    #time-line::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%) translateX(-50%);
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ef4444;
+    }
+</style>

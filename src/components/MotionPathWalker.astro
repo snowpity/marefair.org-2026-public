@@ -1,0 +1,112 @@
+---
+import { Image } from "astro:assets";
+import Hoofprint from "@assets/map/Path/hoof_print.png";
+
+interface Props {
+    pathSvg: string;
+    mapWidth: number;
+    duration?: number;
+    size?: number;
+    img?: ImageMetadata;
+    flipRight?: boolean; // Instead of importing another image for the right
+    nameTag?: ImageMetadata; // Optional name tag image, always rendered upright
+    nameTagSize?: number;
+}
+
+const { pathSvg, mapWidth, duration = 200, size = 12, img = Hoofprint, flipRight = false, nameTag, nameTagSize = 32 } = Astro.props;
+
+const pathDMatch = pathSvg.match(/<path[^>]*?\sd="([^"]+)"/s);
+const pathD = pathDMatch?.[1] ?? "";
+
+// Get native SVG width from viewBox, falling back to width attribute, then mapWidth
+const viewBoxMatch = pathSvg.match(/viewBox="0 0 ([0-9.]+)/);
+const widthAttrMatch = pathSvg.match(/width="([0-9.]+)"/);
+const svgNativeWidth = parseFloat(viewBoxMatch?.[1] ?? widthAttrMatch?.[1] ?? String(mapWidth));
+const pathScale = mapWidth / svgNativeWidth;
+
+// Rescale the SVG tag to mapWidth so it overlays correctly
+const scaledSvg = pathSvg.replace(/<svg([^>]*)>/, (_, a) => {
+    const wMatch = a.match(/width="([^"]*)"/);
+    const hMatch = a.match(/height="([^"]*)"/);
+    const vbMatch = a.match(/viewBox="[^"]*"/);
+    const cleaned = a.replace(/\s*(width|height)="[^"]*"/g, '');
+    const viewBox = vbMatch ? '' : ` viewBox="0 0 ${wMatch?.[1] ?? mapWidth} ${hMatch?.[1] ?? '100%'}"`;
+    return `<svg width="${mapWidth}" height="100%"${viewBox}` + cleaned + '>';
+});
+
+const nametagHeight = nameTagSize * (nameTag.height / nameTag.width);
+---
+
+<!-- Invisible path overlay so the SVG geometry exists in DOM (not needed for offset-path, but useful for debugging) -->
+<span
+    class="path-overlay absolute top-0 left-0 w-full h-full pointer-events-none"
+    set:html={scaledSvg}
+/>
+
+<!-- Hoofprint walking the path -->
+<div class="hoofprint-walker pointer-events-none absolute top-0 left-0"
+    style={`scale: ${pathScale}; offset-path: path("${pathD}"); offset-distance: 0%; offset-rotate: auto; --walk-duration: ${duration}s;`}>
+    <div class="hoofprint-walker  rotate-90">
+        <div class="flex flex-row">
+            <Image src={img} alt="" width={size} height={size} format="avif"/>
+            <Image src={img} alt="" width={size} height={size} format="avif" style={`${flipRight ? "scale: -1 1;" : ""}`}/>
+        </div>
+        <div class="flex flex-row mt-[10px]">
+            <Image src={img} alt="" width={size} height={size} format="avif"/>
+            <Image src={img} alt="" width={size} height={size} format="avif" style={`${flipRight ? "scale: -1 1;" : ""}`}/>
+        </div>
+    </div>
+</div>
+
+<!-- Name tag that travels the same path but stays upright (offset-rotate: 0deg) -->
+{nameTag && (
+    <div class="nametag-walker pointer-events-none absolute top-0 left-0"
+        style={`scale: ${pathScale}; offset-path: path("${pathD}"); offset-distance: 0%; offset-rotate: 0deg; --walk-duration: ${duration}s;`}>
+        <Image src={nameTag} alt="" format="avif" class="nametag-img" style={`width: ${nameTagSize}px; height: ${nametagHeight}px; margin-bottom: ${nametagHeight*3}px; transform: translateX( ${-nameTagSize/6}px)`} />
+    </div>
+)}
+
+<style is:global>
+    .path-overlay svg path {
+        fill: none !important;
+        stroke: none !important;
+    }
+
+    .hoofprint-walker {
+        animation: hoofprint-walk var(--walk-duration, 200s) linear infinite;
+    }
+
+    .nametag-walker {
+        animation: hoofprint-walk var(--walk-duration, 200s) linear infinite;
+    }
+
+    @keyframes hoofprint-walk {
+        from { offset-distance: 0%; }
+        to   { offset-distance: 100%; }
+    }
+
+    /* Each hoof slides back then fades out, staggered so they alternate */
+    .hoofprint-walker img {
+        animation: hoof-stamp 1s linear infinite;
+    }
+
+    /* Row 1: left=0s (default), right=0.5s */
+    .hoofprint-walker .flex:nth-child(1) img:nth-child(2) {
+        animation-delay: 0.5s;
+    }
+
+    /* Row 2: left=0.7s, right=0.2s */
+    .hoofprint-walker .flex:nth-child(2) img:nth-child(1) {
+        animation-delay: 0.7s;
+    }
+    .hoofprint-walker .flex:nth-child(2) img:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+
+    @keyframes hoof-stamp {
+        0%   { transform: translateY(0);  opacity: 1; }
+        100%  { transform: translateY(34px);  opacity: 0; }
+
+    }
+</style>

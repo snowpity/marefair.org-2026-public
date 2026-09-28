@@ -1,0 +1,762 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+import BgTileable from '@components/BgTileable.astro';
+import { marked } from 'marked';
+import Prose from '@components/ProseRegister.astro';
+
+import woodRaw from "@assets/bg/wood.png";
+const wood = await getImage({ src: woodRaw, format:"png", height:2048});
+
+import Potion_zeeb from "@assets/register/Potion_zeeb.png";
+
+import { badges } from "@components/BadgeData.ts";
+
+function parseMarkdown(text: string) {
+    const html = marked.parseInline(text);
+    return html;
+}
+
+import atlasRaw from '@assets/register/atlas.png';
+const atlasHeight = 600;
+const atlasCount = 15;
+const atlas = await getImage({ src: atlasRaw, format: "avif", height: atlasHeight });
+---
+
+<Layout title="Register | Mare Fair 2026">
+    <BgTileable imgSrc={wood.src} vignette stain/>
+    <div id="potionWrapper" class="lg:w-3/5 w-[96%] h-[92svh] overflow-hidden overflow-y-scroll bg-black/50 rounded-xl m-[2%] p-[2%] lora-500 text-white flex flex-col gap-6"
+        style={`--atlas-count: ${atlasCount};`}>
+
+        <h1 class="text-center text-8xl"> BADGES </h1>
+        {/*
+        <center>
+            <p> Badge registration will open on February 07, 2026 </p>
+            <p class="mb-10" id="countDownElement">  </p>
+        </center>
+        */}
+
+    {badges.map((badge, index) => (
+        <>
+        {index == 11 ? (
+            <h1 class="badge-header mt-20"> SPIRIT </h1>
+        ) : (
+            ""
+        )}
+        <Prose>
+        <div class="flex sm:flex-row flex-col">
+            <div class="atlas" id={`potion-${index}`} style={`background-image: url(${atlas.src}); background-position: -${index * 100}%;`}></div>
+            <div class="w-full sm:pl-[2.5%] sm:pr-0 px-[10%]">
+                <h2> {badge.title} </h2>
+                <p class="text-neutral-400"> Price: {badge.price} </p>
+                <p class="text-neutral-400 mb-5"> {badge.notes} </p>
+                <ul class="list-disc list-inside">
+                {badge.perks.map((perk, index) => (
+                    <li set:html={parseMarkdown(perk)} />
+                ))}
+                </ul>
+            </div>
+        </div>
+        </Prose>
+        {badge.soldOut ? (
+            <div class="purchase-button sold-out"> Sold Out </div>
+        ) : (
+            <a href={badge.link} class="purchase-button"> Purchase </a>
+        )}
+        {(index !== badges.length - 1) && (index !== 10) ? <hr/> : ""}
+        </>
+    ))}
+    </div>
+
+    <div id="Chatbox" class="absolute top-0 right-0 w-1/3 h-[92%] m-[2%] p-[2%] bg-black/50 rounded-xl lg:block hidden peer">
+        {/* Inject these dynamically only for js users */}
+    </div>
+
+    <Image id="PotionSeller" src={Potion_zeeb} width="1024" alt="The Potion Seller" class="w-3/5 -mb-[20%] -mr-[20%] self-start absolute bottom-0 right-0 p-10 pb-0 lg:block hidden peer-hover:opacity-10 peer-focus-within:opacity-10 transition-opacity" inert/>
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+    hr {
+        @apply border-0 block min-h-[1px] bg-[linear-gradient(to_right,transparent_0%,white_20%,white_80%,transparent_100%)];
+    }
+    .center-horizontally {
+        @apply left-1/2 -translate-x-1/2;
+    }
+    .purchase-button {
+        @apply sm:min-w-24 min-w-full min-h-12 bg-green-800 hover:bg-green-950 transition-colors ml-auto rounded-lg flex items-center justify-center;
+    }
+    .sold-out {
+        @apply pointer-events-none bg-neutral-800;
+    }
+    .badge-header {
+        @apply text-center text-8xl mb-10;
+    }
+
+    @property --t {
+        syntax: '<number>';
+        inherits: false;
+        initial-value: 0;
+    }
+
+    .atlas {
+        @apply aspect-square sm:w-[300px] w-full h-auto bg-repeat-x;
+        background-size: calc(var(--atlas-count) * 100%);
+        animation: organic-wave 10s linear infinite paused;
+        translate: calc(sin(var(--t) * 3) * 2px) calc(sin(var(--t) * 2) * 5px);
+        rotate: calc(sin(var(--t) * 4) * 2deg);
+        transition: filter 0.3s, translate 0.3s ease-out, rotate 0.3s ease-out;
+    }
+
+    .atlas:hover {
+        animation-play-state: running;
+        animation: organic-wave 10s linear infinite, glow-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes organic-wave {
+        to { --t: 6.28318; } /* 2pi */
+    }
+
+    @keyframes glow-pulse {
+        0%, 100% {
+            filter: drop-shadow(0 0 0 transparent);
+        }
+        50% {
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+        }
+    }
+</style>
+
+<style is:global>
+    @reference "tailwindcss";
+    .potion-seller-chat  {
+        @apply text-red-500
+    }
+    .user-chat  {
+        @apply text-green-500
+    }
+</style>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        const topPotion = document.getElementById('potion-10') as HTMLElement;
+        topPotion.addEventListener('mouseenter', () => {
+            // ACHIEVEMENT: Admire the Legendary Potion
+            if (window.steamAchievements && !window.steamAchievements.isUnlocked('cant_afford'))
+                window.steamAchievements.unlock('cant_afford');
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+
+        // Some older browser **cough** current Firefox **cough** doesn't support something I need, javascript the only way to make it work properly.
+        // Basically we ger rid of its animation (the t variable), then force a reflow to make sure it takes effect, then reapply it back.
+        // Bottles now snaps back to origin when unhovered
+        const atlases = document.querySelectorAll('.atlas') as NodeListOf<HTMLElement>;
+
+        atlases.forEach(atlas => {
+            atlas.addEventListener('mouseleave', () => {
+                const currentAnimation = atlas.style.animation;
+                atlas.style.animation = 'none';
+
+                // Force a reflow to ensure the pause takes effect
+                void atlas.offsetHeight;
+
+                atlas.style.animation = currentAnimation;
+            });
+        });
+    });
+</script>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        const chatbox = document.getElementById("Chatbox");
+
+        // Indexing for state
+        let potionIndex = 0;
+        let quitIndex = 0;
+
+        if (chatbox) {
+            // ============ STATE MACHINE ============
+
+            type ConversationState =
+                | 'greeting'
+                | 'idle'
+                | 'potion_request'
+                | 'quit_response'
+                | 'what_are_you'
+                | 'respect'
+                | 'badges'
+                | 'badge_pricing'
+                | 'badge_tiers'
+                | 'registration'
+                | 'events'
+                | 'cinemare'
+                | 'cruise'
+                | 'hotel'
+                | 'vendors'
+                | 'panels'
+                | 'ceremonies'
+                | 'spirit_badges'
+                | 'theme'
+                | 'location'
+                | 'dates'
+                | 'contact'
+                | 'small_talk'
+                | 'compliments'
+                | 'farewell'
+                | 'court';
+
+            interface ConversationContext {
+                state: ConversationState;
+                history: string[];
+                topicsDiscussed: Set<string>;
+                badgeTierMentioned: string | null;
+                lastIntent: string | null;
+                conversationDepth: number;
+                userMentionedMare: boolean;
+            }
+
+            const context: ConversationContext = {
+                state: 'greeting',
+                history: [],
+                topicsDiscussed: new Set(),
+                badgeTierMentioned: null,
+                lastIntent: null,
+                conversationDepth: 0,
+                userMentionedMare: false
+            };
+
+            // ============ INTENT RECOGNITION ============
+
+            interface Intent {
+                name: string;
+                keywords: string[];
+                weight: number;
+                state?: ConversationState;
+            }
+
+            const intents: Intent[] = [
+                // Potion Seller
+                { name: 'potion_request', keywords: ['potion', 'potions', 'strongest', 'strong potion'], weight: 12, state: 'potion_request' },
+                { name: 'quit', keywords: ['quit', 'elsewhere', 'go away', 'leave', 'weaker'], weight: 11, state: 'quit_response' },
+                { name: 'respect', keywords: ['respect'], weight: 10, state: 'respect' },
+
+                // Badge-related
+                { name: 'badge_general', keywords: ['badge', 'badges', 'ticket', 'tickets', 'admission', 'entry'], weight: 10, state: 'badges' },
+                { name: 'badge_pricing', keywords: ['price', 'cost', 'how much', 'expensive', 'cheap', 'discount', 'deal'], weight: 8, state: 'badge_pricing' },
+                { name: 'badge_tiers', keywords: ['tier', 'supporter', 'enjoyer', 'enthusiast', 'admirer', 'connoisseur', 'aficionado', 'fanatic', 'schizo', 'fairgoer', 'latecoomer'], weight: 9, state: 'badge_tiers' },
+                { name: 'spirit_badges', keywords: ['spirit', 'spirit badge', 'virtual', 'online'], weight: 7, state: 'spirit_badges' },
+
+                // Registration
+                { name: 'registration', keywords: ['register', 'registration', 'sign up', 'buy', 'purchase', 'where', 'how to'], weight: 9, state: 'registration' },
+
+                // Events
+                { name: 'events_general', keywords: ['event', 'events', 'activity', 'activities', 'what to do', 'what\'s happening'], weight: 7, state: 'events' },
+                { name: 'cinemare', keywords: ['cinemare', 'movie', 'movies', 'film', 'cinema', 'thursday night'], weight: 8, state: 'cinemare' },
+                { name: 'cruise', keywords: ['cruise', 'charter', 'boat', 'ship', 'sailing'], weight: 8, state: 'cruise' },
+
+                // Venue & Logistics
+                { name: 'hotel', keywords: ['hotel', 'room', 'accommodation', 'stay', 'lodging', 'suite', 'check in', 'check out'], weight: 8, state: 'hotel' },
+                { name: 'location', keywords: ['where', 'location', 'address', 'venue', 'place', 'city'], weight: 7, state: 'location' },
+                { name: 'dates', keywords: ['when', 'date', 'dates', 'time', 'schedule', 'september'], weight: 8, state: 'dates' },
+
+                // Convention Features
+                { name: 'vendors', keywords: ['vendor', 'vendors', 'merchant', 'shop', 'store', 'market', 'stall', 'stalls'], weight: 7, state: 'vendors' },
+                { name: 'panels', keywords: ['panel', 'panels', 'talk', 'presentation', 'workshop', 'seminar'], weight: 7, state: 'panels' },
+                { name: 'ceremonies', keywords: ['ceremony', 'ceremonies', 'opening', 'closing', 'ceremony'], weight: 6, state: 'ceremonies' },
+
+                // Theme & Atmosphere
+                { name: 'theme', keywords: ['theme', 'fantasy', 'what is', 'about', 'mare fair'], weight: 6, state: 'theme' },
+
+                // Contact
+                { name: 'contact', keywords: ['contact', 'email', 'help', 'support', 'question', 'problem', 'issue'], weight: 7, state: 'contact' },
+
+                // Social
+                { name: 'compliments', keywords: ['cute', 'pretty', 'adorable', 'beautiful', 'lovely', 'nice', 'wonderful'], weight: 5, state: 'compliments' },
+                { name: 'greeting', keywords: ['hello', 'hi', 'hey', 'greetings', 'good morning', 'good afternoon', 'good evening'], weight: 3, state: 'greeting' },
+                { name: 'farewell', keywords: ['bye', 'goodbye', 'see you', 'farewell', 'later', 'thanks', 'thank you'], weight: 4, state: 'farewell' },
+                { name: 'court', keywords: ['plap', 'sex'], weight: 4, state: 'court' },
+
+                // Small talk
+                { name: 'who_are_you', keywords: ['who are you', 'what are you', 'who', 'what'], weight: 5 },
+                { name: 'mare_mention', keywords: ['mare', 'mares', 'pony', 'ponies'], weight: 6 }
+            ];
+
+            function detectIntent(message: string): { intent: Intent | null; confidence: number } {
+                const lower = message.toLowerCase();
+                let bestMatch: Intent | null = null;
+                let bestScore = 0;
+
+                for (const intent of intents) {
+                    let score = 0;
+                    for (const keyword of intent.keywords) {
+                        if (lower.includes(keyword)) {
+                            score += intent.weight;
+                            // Boost score if keyword appears at start of message
+                            if (lower.startsWith(keyword) || lower.includes(` ${keyword}`)) {
+                                score += 2;
+                            }
+                        }
+                    }
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMatch = intent;
+                    }
+                }
+
+                return {
+                    intent: bestMatch,
+                    confidence: bestScore
+                };
+            }
+
+            // ============ RESPONSE GENERATION ============
+
+            const potionResponses = [
+                "My potions are too strong for you, traveller!",
+                "You can't handle my potions. They're too strong for you!",
+                "My potions would kill you, traveler. You cannot handle my potions.",
+                "My strongest potions would kill you, traveler. You can't handle my strongest potions. You'd better go to a seller that sells weaker potions!",
+                "You don't know what you ask, traveler. My strongest potions will kill a dragon let alone a man. You need a seller that sells weaker potions, because my potions are too strong!",
+                "You can't handle my strongest potions! No one can! My strongest potions are fit for a beast let alone a man!",
+                "I can't give you my strongest potions because my strongest potions are only for the strongest beings and you are of the weakest.",
+                "You're not welcome here! My potions are only for the strongest and you're clearly are not of the strongest you're clearly the weakest.",
+            ];
+
+            const quitResponses = [
+                "That's what you'd better do",
+                "Good. You're not welcome here! My potions are only for the strongest and you're clearly are not of the strongest you're clearly the weakest!",
+            ];
+
+            const respectResponse = "Why respect knights... when my potions can do anything that you can...";
+
+            const responses: Record<ConversationState, string[]> = {
+
+                potion_request: [],
+                quit_response: [],
+                what_are_you: [],
+                respect: [respectResponse],
+
+                greeting: [
+                    "Ah, a traveler approaches my humble stall! Welcome to Mare Fair, wanderer. I am but a simple potion seller, though I've been known to answer questions about this gathering of mares.",
+                    "Greetings, traveler! You've found yourself at Mare Fair, and I'm here to help guide you through the mysteries of registration and badges. What brings you to my stall?",
+                    "Hello there, dear wanderer! I see you're curious about this convention. While I deal primarily in potions, I've learned much about badges, events, and the ways of cute mares. How may I assist?",
+                    "Well met, traveler! You've stumbled upon Mare Fair's registration page, and I happen to know a thing or two about badges and events. What would you like to know?"
+                ],
+                idle: [
+                    "Is there something else you'd like to know about Mare Fair?",
+                    "What else can I help you with, traveler?",
+                    "Do you have other questions about the convention?",
+                    "What would you like to learn about next?"
+                ],
+                badges: [
+                    "Ah, badges! The very essence of entry to Mare Fair. We have many tiers, from the humble Fairgoer to the legendary Mare Schizo. Each grants different privileges and access.",
+                    "Badges are your key to Mare Fair, traveler. There are several tiers available, each with its own price and perks. The basic Fairgoer badge starts at $65 if purchased early, rising to $75 at the door.",
+                    "Badges, you say? Well, I've seen many travelers seek these. There are regular badges and Spirit badges for those who cannot attend in person. Which interests you more?",
+                    "The badge system here is quite elaborate. You have Fairgoer, Supporter, Enjoyer, Appreciator, Enthusiast, Admirer, Connoisseur, Aficionado, Fanatic, and the ultimate Mare Schizo tier. Each offers different benefits."
+                ],
+                badge_pricing: [
+                    "Pricing varies by tier and timing, traveler. Fairgoer badges start at $65 if purchased before February 28th, then $70 until August 27th, and $75 at the door. Higher tiers range from $125 to $15,555.",
+                    "Ah, the cost! Early birds catch the best deals. Fairgoer badges are cheapest before February 28th at $65. Most supporter tiers are available until June 21st, with Latecoomer options available later at higher prices.",
+                    "The pricing structure rewards early commitment, wanderer. Basic Fairgoer starts at $65, while premium tiers like Mare Schizo cost $15,555. Spirit badges for virtual attendance start at $45.",
+                    "Prices escalate with both tier and timing. Fairgoer: $65-$75. Supporter tiers: $125-$165. Premium tiers climb dramatically, with Mare Schizo at $15,555. But remember, higher tiers include hotel rooms, meals, and exclusive access."
+                ],
+                badge_tiers: [
+                    "The tiers are many, traveler! Fairgoer is the base entry. Then Mare Supporter adds sponsor perks. Mare Enjoyer grants early access. Enthusiast gets early access and hotel rooms. Higher tiers add more exclusive benefits.",
+                    "Each tier builds upon the last, wanderer. Fairgoer gets you in. Supporter adds sponsor gifts. Enjoyer adds early access. Enthusiast adds hotel rooms and early access. The highest tiers include VIP suites, backstage passes, and even theme park tickets.",
+                    "The badge hierarchy is quite elaborate! Fairgoer is entry-level. Supporter tiers add sponsor recognition and gifts. Enjoyer gets priority access. Enthusiast and above include hotel accommodations. Mare Schizo, the ultimate tier, includes hotel suites, backstage access, and dinner with the organizers.",
+                    "Tiers range from Fairgoer ($65-$75) to Mare Schizo ($15,555). Each tier includes all perks from lower tiers plus new benefits. Higher tiers add hotel rooms, early access, front-of-line privileges, and exclusive events."
+                ],
+                registration: [
+                    "To register, traveler, you must visit marefair.org/register. That is where all badge purchases are handled. The process is straightforward once you're there.",
+                    "Registration happens at marefair.org/register, wanderer. Simply visit that site, select your desired badge tier, and complete your purchase. Some tiers have limited availability, so act quickly if you seek the premium options.",
+                    "Ah, registration! You'll find that at marefair.org/register. Most badges are available there, though some premium tiers may have sold out. The site will show you what's currently available.",
+                    "Registration is handled through marefair.org/register. Check the site for current availability."
+                ],
+                events: [
+                    "Mare Fair offers many activities, traveler! There are vendor stalls, panels, opening and closing ceremonies, Cinemare Night on Thursday, and the Maredival Times. Each provides unique experiences.",
+                    "The convention is rich with events, wanderer. You'll find vendor halls, panel discussions, ceremonies, and special events like Cinemare Night and the Maredival Times. Higher badge tiers grant early access to many of these.",
+                    "Events abound at Mare Fair! Vendor stalls open early for Enjoyer tier and above. Panels run throughout the convention. There's Cinemare Night on Thursday, the Maredival Times, and ceremonies that bookend the gathering.",
+                    "The schedule includes vendor halls, panels, ceremonies, Cinemare Night (Thursday), and the Maredival Times. Premium badge holders get early access to vendors and priority seating at panels."
+                ],
+                cinemare: [
+                    "Cinemare Night happens on Thursday, traveler. It's a special movie screening event. Some premium badge tiers include free tickets with transportation. A delightful way to begin the convention!",
+                    "Ah, Cinemare Night! That's Thursday evening, wanderer. It features film screenings, and certain badge tiers include complimentary tickets with transportation provided. Check which tier includes this perk.",
+                    "Cinemare Night is a Thursday event featuring movie screenings. Mare Admirer tier and above include free tickets with transportation. It's a wonderful way to kick off the convention experience.",
+                    "Cinemare Night occurs Thursday evening. Premium badge tiers like Mare Admirer, Connoisseur, and above include free tickets with transportation. It's an exclusive event to start your Mare Fair journey."
+                ],
+                cruise: [
+                    "This event is not happening this year.  Sorry, traveler."
+                ],
+                hotel: [
+                    "Hotel accommodations vary by tier, traveler. Mare Enthusiast and above include hotel rooms. Enthusiast gets a king or double queen for 4 nights. Higher tiers upgrade to hotel suites for longer stays.",
+                    "Ah, lodging! Mare Enthusiast tier ($1,300) includes a hotel room for 4 nights, check-in Thursday, check-out Monday. Mare Aficionado includes a Suite. Mare Schizo includes a Suite for 7 nights, plus a room for friends.",
+                    "Hotel rooms are included with premium tiers, wanderer. Enthusiast gets 4 nights. Aficionado gets a Suite. Schizo gets a Suite for 7 nights plus a room for companions. Additional nights can be added at con rate ($119 plus taxes).",
+                    "Accommodations start with Mare Enthusiast: 4-night hotel room. Mare Aficionado: Suite for 4 nights. Mare Schizo: Suite for 7 nights plus a companion room. Contact attendees@marefair.org to add nights at con rates."
+                ],
+                vendors: [
+                    "Vendor stalls are a major attraction, traveler! Mare Enjoyer tier and above get early access on Thursday evening. Regular attendees access vendors during standard hours. Many unique wares await!",
+                    "Ah, the vendors! Mare Enjoyer badge holders get early access to vendor stalls, AD vendor stalls, and the con store. Mare Fanatic and Schizo tiers even get Thursday evening access before vendors are fully set up.",
+                    "Vendor halls are bustling places, wanderer. Enjoyer tier grants early access. The con store offers official merchandise. AD vendor stalls feature artist wares. Higher tiers get priority access.",
+                    "Vendors are accessible to all, but Mare Enjoyer tier and above get early access. Mare Fanatic and Schizo includes Thursday evening vendor access (though vendors may not be fully set up). The con store offers official Mare Fair merchandise."
+                ],
+                panels: [
+                    "Panels run throughout the convention, traveler. They cover various topics related to cute mares and the community. Mare Enjoyer tier and above get early access.",
+                    "Ah, panels! These are discussion sessions and presentations, wanderer. Enjoyer tier grants early access. Fanatic and Schizo tiers get front-of-line privileges for all panels. Many fascinating topics are covered.",
+                    "Panels are educational and entertaining sessions, traveler. Enjoyer tier gets early access. Fanatic and above can cut to the front of panel lines. The schedule covers diverse topics.",
+                    "Panels feature discussions, workshops, and presentations. Mare Enjoyer tier includes early access. Mare Fanatic and above get front-of-line privileges. Check the schedule for topics and times."
+                ],
+                ceremonies: [
+                    "Opening and closing ceremonies bookend the convention, traveler. Premium badge holders can opt to be thanked during these ceremonies. Mare Aficionado and above can even speak on stage if they wish.",
+                    "Ah, the ceremonies! These mark the beginning and end of Mare Fair, wanderer. Higher tier supporters can opt for recognition during ceremonies. Mare Aficionado tier and above can speak briefly on stage.",
+                    "Ceremonies are special moments, traveler. Opening ceremony welcomes everyone. Closing ceremony concludes the gathering. Premium badge holders can opt for recognition, and some can speak on stage.",
+                    "Opening and closing ceremonies are significant events. Mare Admirer and above can opt for thanks during ceremonies. Mare Aficionado and above can speak briefly on stage. It's a way to honor supporters."
+                ],
+                spirit_badges: [
+                    "Ah, Spirit badges! For those who cannot attend in person, traveler. Spirit Fairgoer is $45 and includes the badge and lanyard. Spirit Supporter is $150 with sponsor perks. Spirit Latecoomer is available until August 27th.",
+                    "Spirit badges are for virtual attendance, wanderer. Spirit Fairgoer ($45) gets you the badge and lanyard. Spirit Supporter ($150) includes sponsor perks. These are available until August 27th for Latecoomer tier.",
+                    "Spirit badges allow you to support Mare Fair from afar, traveler. They're cheaper than in-person badges and include the physical badge and lanyard. Perfect for those who cannot travel to the convention.",
+                    "Spirit badges are virtual attendance options. Spirit Fairgoer: $45. Spirit Supporter: $150. These include the badge and lanyard, allowing you to support the convention remotely."
+                ],
+                theme: [
+                    "Mare Fair celebrates cute mares, traveler! This year has a fantasy theme, which suits my potion-selling profession quite well. It's a gathering of like-minded individuals who appreciate adorable equine characters.",
+                    "Ah, the theme! This year is fantasy-themed, wanderer, which aligns perfectly with my mystical trade. Mare Fair is all about celebrating cute mares and the community that loves them.",
+                    "Mare Fair is a convention centered on cute mares, traveler. This year's fantasy theme creates a magical atmosphere. It's a place where fans gather to celebrate, share art, attend panels, and enjoy each other's company.",
+                    "The convention celebrates cute mares, wanderer. This year's fantasy theme adds a mystical touch. It's a gathering for the community to enjoy vendors, panels, events, and the company of fellow enthusiasts."
+                ],
+                location: [
+                    "I'm afraid I don't have the exact address memorized, traveler, but the convention takes place at a hotel venue. You can find location details on the main Mare Fair website or by contacting the organizers.",
+                    "The location details aren't in my potion-selling knowledge, wanderer, but I know it's held at a hotel venue. Check the main Mare Fair website for the exact address and directions.",
+                    "Location specifics escape me at the moment, traveler, but it's a hotel-based convention. The main Mare Fair website should have all venue information, including address and travel directions.",
+                    "I don't have the exact venue address, wanderer, but Mare Fair is held at a hotel. Visit the main website or contact attendees@marefair.org for location details and travel information."
+                ],
+                dates: [
+                    "Mare Fair 2026 takes place in late August, traveler. Badge pricing tiers suggest dates around August 28th-30th. Check-in for hotel rooms begins Thursday, with check-out on Monday for some tiers.",
+                    "The convention occurs in August, wanderer. Based on badge deadlines, it appears to run around August 28th-30th. Hotel check-in starts Thursday, with events running through the weekend.",
+                    "Dates are in late August, traveler. Badge pricing suggests the main convention runs August 28th-30th. Thursday features Cinemare Night, and the weekend includes main convention activities.",
+                    "Mare Fair 2026 is scheduled for late August, wanderer. The convention appears to run August 28th-30th based on badge pricing deadlines. Thursday includes Cinemare Night, with main events Friday through Sunday."
+                ],
+                contact: [
+                    "For official matters, traveler, contact attendees@marefair.org. They handle registration questions, hotel accommodations, and convention logistics. I'm just a potion seller offering guidance!",
+                    "Official contact is attendees@marefair.org, wanderer. They can help with registration, hotel questions, and convention details. The Head Pony In Charge has a phone number for premium tier holders.",
+                    "Contact attendees@marefair.org for official help, traveler. They handle registration, hotel accommodations, and convention questions. Premium badge tiers include direct contact information.",
+                    "For official assistance, email attendees@marefair.org, wanderer. They handle registration, hotel bookings, and convention logistics. Premium tiers like Mare Admirer include the Head Pony In Charge's phone number."
+                ],
+                small_talk: [
+                    "I'm but a humble potion seller, traveler, though I've learned much about Mare Fair from travelers like yourself. The convention is quite the gathering!",
+                    "Well, I deal in potions primarily, wanderer, but I've picked up knowledge about badges and events from curious travelers. What would you like to know?",
+                    "My trade is potions, traveler, though I've become something of an unofficial guide to Mare Fair. The convention has many interesting aspects to explore.",
+                    "I sell potions, wanderer, but I've learned about this convention from the many travelers who pass through. It's quite fascinating, really!"
+                ],
+                compliments: [
+                    "Why thank you, dear traveler! Though I'm just a simple potion seller, I appreciate the kind words. Now, about those badges...",
+                    "How kind of you to say, wanderer! Flattery won't get you stronger potions, but I'm happy to help with convention questions.",
+                    "You're too kind, traveler! I'm flattered, though my focus remains on helping you with Mare Fair information. What would you like to know?",
+                    "Thank you, wanderer! That's very sweet. Now, shall we return to matters of badges and the convention? I'm here to help guide you."
+                ],
+                farewell: [
+                    "Farewell, traveler! May your journey to Mare Fair be smooth, and may you find the perfect badge tier for your needs. Safe travels!",
+                    "Goodbye, wanderer! I hope I've been helpful. Enjoy Mare Fair, and remember: early registration saves you gold!",
+                    "Until we meet again, traveler! Best of luck with your registration, and I hope to see you at the convention!",
+                    "Farewell, dear wanderer! May your Mare Fair experience be magical. Don't forget to register early for the best prices!"
+                ],
+                court: [
+                    "How forward! Hoverver, such topics are not appropriate for discussion here, traveler. Let us focus on matters of badges and the convention.",
+                    "I'm afraid I cannot assist with your love quest, wanderer. My expertise lies in potions and Mare Fair information.",
+                    "I'm glad you're allured by my charm, but that is not a topic I can engage with, traveler. Let's return to discussing badges and events at Mare Fair.",
+                    "I'm here to help with Mare Fair questions, wanderer, but that subject is beyond my purview. Shall we continue discussing the convention?"
+                ]
+            };
+
+            function getResponse(state: ConversationState, message: string): string {
+                // Indexed response
+                // Handle potion seller copypasta
+                if (state === 'potion_request') {
+                    const response = potionResponses[potionIndex];
+                    potionIndex = (potionIndex + 1) % potionResponses.length;
+                    return response;
+                }
+
+                if (state === 'quit_response') {
+                    const response = quitResponses[quitIndex];
+                    quitIndex = (quitIndex + 1) % quitResponses.length;
+                    return response;
+                }
+                if (state === 'respect') {
+                    return respectResponse;
+                }
+
+                const stateResponses = responses[state] || responses.idle;
+
+                // Add contextual variations based on conversation history
+                if (context.conversationDepth > 3 && Math.random() > 0.7) {
+                    // Occasionally reference previous topics
+                    const discussedTopics = Array.from(context.topicsDiscussed);
+                    if (discussedTopics.length > 0 && Math.random() > 0.5) {
+                        const topic = discussedTopics[Math.random() * discussedTopics.length | 0];
+                        return `As I mentioned about ${topic}, ${stateResponses[Math.random() * stateResponses.length | 0].toLowerCase()}`;
+                    }
+                }
+
+                // Check for specific badge tier mentions
+                if (context.badgeTierMentioned && state === 'badge_tiers') {
+                    const tier = context.badgeTierMentioned.toLowerCase();
+                    if (tier.includes('schizo')) {
+                        return "Mare Schizo, the ultimate tier at $15,555! It includes executive suite, backstage pass, dinner with organizers, theme park tickets, and badges for friends. Truly the most exclusive experience, traveler.";
+                    } else if (tier.includes('fanatic')) {
+                        return "Mare Fanatic at $5,555 includes VIP suite, limo service, restaurant gift card worth $405, and tickets for friends to events. A substantial commitment, wanderer!";
+                    } else if (tier.includes('aficionado')) {
+                        return "Mare Aficionado, $2,700, includes VIP suite, custom badge art, shaded art commission, messenger bag, and Charter Day Cruise tickets. Quite the premium experience!";
+                    }
+                }
+
+                return stateResponses[Math.random() * stateResponses.length | 0];
+            }
+
+            function updateContext(intent: Intent | null, message: string) {
+                context.conversationDepth++;
+                context.history.push(message);
+                if (context.history.length > 10) {
+                    context.history.shift(); // Keep last 10 messages
+                }
+
+                if (intent?.state) {
+                    context.state = intent.state;
+                    context.topicsDiscussed.add(intent.name);
+                }
+
+                // Track badge tier mentions
+                const badgeTierKeywords = ['fairgoer', 'supporter', 'enjoyer', 'enthusiast', 'admirer', 'connoisseur', 'aficionado', 'fanatic', 'schizo', 'latecoomer'];
+                for (const tier of badgeTierKeywords) {
+                    if (message.toLowerCase().includes(tier)) {
+                        context.badgeTierMentioned = tier;
+                        break;
+                    }
+                }
+
+                // Track mare mentions
+                if (message.toLowerCase().includes('mare') || message.toLowerCase().includes('pony')) {
+                    context.userMentionedMare = true;
+                }
+
+                context.lastIntent = intent?.name || null;
+            }
+
+            // ============ UI SETUP ============
+
+            const messagesDiv = document.createElement("div");
+            messagesDiv.className = "flex flex-col gap-2 mb-4 overflow-y-auto max-h-[90%]";
+            messagesDiv.innerHTML = `
+                <div class="whitespace-normal">
+                    <p class="potion-seller-chat inline">Potion Seller: </p>
+                    <p class="inline text-white">${responses.greeting[0]}</p>
+                </div>
+            `;
+
+            const typingIndicator = document.createElement("div");
+            typingIndicator.id = "ChatDelayIndicator";
+            typingIndicator.className = "w-fit text-white bg-neutral-900 rounded-xl text-sm p-2 hidden";
+            typingIndicator.textContent = "Typing...";
+
+            const inputContainer = document.createElement("div");
+            inputContainer.className = "mt-auto";
+            inputContainer.innerHTML = `
+                <input
+                    type="text"
+                    id="userInput"
+                    placeholder="Type your message..."
+                    class="w-full p-2 mb-2 rounded bg-black/70 text-white border border-gray-600 focus:outline-none focus:border-gray-400"
+                />
+            `;
+
+            chatbox.innerHTML = "";
+            chatbox.appendChild(inputContainer);
+            chatbox.appendChild(messagesDiv);
+            chatbox.appendChild(typingIndicator);
+
+            const input = document.getElementById("userInput") as HTMLInputElement;
+
+            function addMessage(sender: string, text: string, isUser = false) {
+                const messageDiv = document.createElement("div");
+                messageDiv.className = isUser ? "whitespace-normal text-right" : "whitespace-normal";
+                messageDiv.innerHTML = `
+                    <p class="${isUser ? 'user-chat' : 'potion-seller-chat'} inline">${sender}: </p>
+                    <p class="inline text-white">${text}</p>
+                `;
+                messagesDiv.appendChild(messageDiv);
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
+
+            // ============ MESSAGE HANDLING ============
+
+            input.addEventListener("keypress", (e) => {
+                if (e.key === "Enter" && input.value.trim()) {
+                    const userMessage = input.value.trim();
+                    addMessage("User", userMessage, true);
+
+                    const { intent, confidence } = detectIntent(userMessage);
+
+                    // Update context based on detected intent
+                    updateContext(intent || null, userMessage);
+
+                    // Determine response state
+                    let responseState: ConversationState = context.state;
+
+                    // Handle special cases
+                    if (intent?.name === 'who_are_you') {
+                        responseState = 'small_talk';
+                    } else if (intent?.name === 'mare_mention' && !context.userMentionedMare) {
+                        responseState = 'theme';
+                    } else if (intent?.state) {
+                        responseState = intent.state;
+                    } else if (confidence < 3) {
+                        // Low confidence, try to maintain context or go to idle
+                        if (context.state !== 'greeting') {
+                            responseState = 'idle';
+                        }
+                    }
+
+                    const response = getResponse(responseState, userMessage);
+
+                    // Calculate typing delay (more natural variation)
+                    const baseDelay = response.length * 15;
+                    const variation = Math.random() * 500 + 200; // 200-700ms variation
+                    const delayTime = baseDelay + variation;
+
+                    typingIndicator.classList.remove("hidden");
+
+                    setTimeout(() => {
+                        addMessage("Potion Seller", response);
+                        typingIndicator.classList.add("hidden");
+
+                        // Auto-transition to idle after response (unless in farewell)
+                        if (responseState !== 'farewell' && responseState !== 'greeting') {
+                            setTimeout(() => {
+                                if (Math.random() > 0.7) { // 30% chance to prompt
+                                    const idlePrompt = responses.idle[Math.random() * responses.idle.length | 0];
+                                    setTimeout(() => {
+                                        typingIndicator.classList.remove("hidden");
+                                        setTimeout(() => {
+                                            addMessage("Potion Seller", idlePrompt);
+                                            typingIndicator.classList.add("hidden");
+                                        }, idlePrompt.length * 15);
+                                    }, 1000);
+                                }
+                            }, 2000);
+                        }
+                    }, delayTime);
+
+                    input.value = "";
+                }
+            });
+        }
+    });
+</script>
+
+<script>
+    interface CountdownTimer {
+        interval: number | null;
+        stop(): void;
+        start(): void;
+    }
+
+    class BrowserCountdownTimer implements CountdownTimer {
+        private targetDate: Date;
+        private countDownElement: HTMLElement;
+        private timeZone: string;
+        interval: number | null = null;
+
+        constructor(targetDate: string, elementId: string, timeZone: string = 'UTC') {
+            // Ensure the input date is interpreted in the specified timezone
+            this.timeZone = timeZone;
+
+            // Create a formatter for the target timezone
+            const formatter = new Intl.DateTimeFormat('en-US', {
+                timeZone: this.timeZone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+
+            this.targetDate = new Date(targetDate);
+            const element = document.getElementById(elementId);
+            if (!element) {
+                throw new Error(`Element with id ${elementId} not found`);
+            }
+            this.countDownElement = element;
+        }
+
+        private formatTimeComponent(value: number): string {
+            return value.toString().padStart(2, '0');
+        }
+
+        private updateCountdown(): void {
+            const now = new Date();
+
+            // Convert current time to target timezone
+            const targetNow = new Date(now.toLocaleString('en-US', { timeZone: this.timeZone }));
+            const timeDiff: number = this.targetDate.getTime() - targetNow.getTime();
+
+            if (timeDiff <= 0) {
+                if (this.countDownElement) {
+                    this.countDownElement.textContent = "Time is up!";
+                }
+                this.stop();
+                return;
+            }
+
+            const days: number = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+            const hours: number = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes: number = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds: number = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+            if (this.countDownElement) {
+                const timeZoneAbbr = new Intl.DateTimeFormat('en-US', {
+                    timeZone: this.timeZone,
+                    timeZoneName: 'short'
+                }).formatToParts(this.targetDate)
+                    .find(part => part.type === 'timeZoneName')?.value || this.timeZone;
+
+                this.countDownElement.textContent =
+                    `That's ${days} days, ${this.formatTimeComponent(hours)} hours, ` +
+                    `${this.formatTimeComponent(minutes)} minutes, ${this.formatTimeComponent(seconds)} seconds ` +
+                    `from now (${timeZoneAbbr})`;
+            }
+        }
+
+        start(): void {
+            if (this.interval === null) {
+                this.updateCountdown(); // Initial update
+                this.interval = window.setInterval(() => this.updateCountdown(), 1000);
+            }
+        }
+
+        stop(): void {
+            if (this.interval !== null) {
+                window.clearInterval(this.interval);
+                this.interval = null;
+            }
+        }
+    }
+
+    // Time zone string is based on IANA timezone database names. https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+
+    // For EST (East Coast Time)
+    // Note: the element in the markup uses id="countDownElement", so ensure we target that.
+    document.addEventListener("astro:page-load", () => {
+        try {
+            const timerEST = new BrowserCountdownTimer('2026-02-07T00:00:00', 'countDownElement', 'America/New_York');
+            timerEST.start();
+        } catch (err) {
+            // Fail gracefully and log to console for easier debugging
+            console.warn('Countdown timer initialization failed:', err);
+        }
+    });
+</script>

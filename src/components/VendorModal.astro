@@ -1,0 +1,308 @@
+---
+// VendorModal.astro
+import { Image } from 'astro:assets';
+import { Icon } from "astro-icon/components";
+import { marked } from 'marked';
+
+// `breaks: true` keeps the old behavior of single newlines becoming <br>,
+// so existing vendor descriptions still look right without edits.
+marked.setOptions({ breaks: true });
+
+export interface Props {
+    vendors: Array<{
+        name: string;
+        description: string;
+        icon?: any; // Astro Image asset
+        'icon-src'?: string;
+        'x-link'?: string | string[];
+        'deviantart-link'?: string | string[];
+        'tumblr-link'?: string | string[];
+        'instagram-link'?: string | string[];
+        'other-link'?: string | string[];
+        'youtube-link'?: string | string[];
+        'bandcamp-link'?: string | string[];
+        'spotify-link'?: string | string[];
+        'soundcloud-link'?: string | string[];
+        id: string;
+    }>;
+    iconDefault?: any; // Astro Image asset for default icon
+    prefix: string;
+    map_prefix:string;
+    isArtistAlley:boolean;
+}
+
+const { vendors, iconDefault, prefix, map_prefix, isArtistAlley = false } = Astro.props;
+---
+
+{vendors.map((vendor) => (
+    <fragment>
+        <input type="radio" name={`${prefix}-toggle`} id={`${vendor.id}${map_prefix}-toggle`} class="hidden" />
+
+        <div id={`${vendor.id}${map_prefix}`} class="fixed w-screen h-screen z-30 opacity-0 pointer-events-none bg-black/60 reddit-sans transition-[opacity,backdrop-filter] duration-200">
+        <label for={`default-${prefix}-toggle`} class="absolute inset-0 w-full h-full cursor-pointer"></label>
+        <div class="absolute-centered bg-white overflow-y-auto w-[40rem] max-w-[100vw] max-h-[80vh] min-h-[25rem] h-auto rounded-xl p-10 shadow-xl shadow-black/30 flex flex-col justify-between">
+            {
+            (isArtistAlley ?
+            <label id="BACKTOAA" class="absolute top-0 left-0 cursor-pointer w-6 h-6 m-5 z-50" for="Artist-Alley-toggle">
+                <Icon name="mdi:arrow-left-bold-circle" class="text-2xl"/>
+            </label>
+            :
+            ""
+            )
+            }
+
+            <div>
+            {vendor.icon ? (
+                <Image src={vendor.icon} format="avif" alt={`${vendor.name} icon`} width={100} class="float-right shadow-md shadow-black/30 ml-2 mb-2"/>
+            ) : (vendor['icon-src'] && vendor['icon-src'].length > 0 ? (
+                <img src={vendor['icon-src']} alt={`${vendor.name} icon`} width="100" class="float-right shadow-md shadow-black/30 ml-2 mb-2"/>
+            ) : (iconDefault ? (
+                <img src={iconDefault} alt={`${vendor.name} icon`} width={100} height={100} class="float-right shadow-md shadow-black/30 ml-2 mb-2 pixelated-img"/>
+            ) : (
+                <div class="float-right w-[100px] h-[100px] bg-gray-200 shadow-md shadow-black/30 ml-2 mb-2 rounded"></div>
+            )))}
+
+            <h2 class="text-2xl font-bold mb-4">{vendor.name}</h2>
+            <div class="vendor-description" set:html={marked.parse(vendor.description)} />
+            </div>
+
+            <div class="flex mt-4">
+            {/* X (Twitter) links */}
+            {Array.isArray(vendor['x-link']) ? (
+                vendor['x-link'].map((link, linkIndex) =>
+                link ? (
+                    <a href={link} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                    <Icon name="X" class="text-2xl"/>
+                    <span class="tooltip">Visit X {linkIndex > 0 ? `(${linkIndex + 1})` : ''}</span>
+                    </a>
+                ) : null
+                )
+            ) : (vendor['x-link'] ? (
+                <a href={vendor['x-link']} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                <Icon name="X" class="text-2xl"/>
+                <span class="tooltip">Visit X</span>
+                </a>
+            ) : null)}
+
+            {/* DeviantArt links */}
+            {Array.isArray(vendor['deviantart-link']) ? (
+                vendor['deviantart-link'].map((link, linkIndex) =>
+                link ? (
+                    <a href={link} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                    <Icon name="mdi:deviantart" class="text-2xl"/>
+                    <span class="tooltip">Visit DeviantArt {linkIndex > 0 ? `(${linkIndex + 1})` : ''}</span>
+                    </a>
+                ) : null
+                )
+            ) : (vendor['deviantart-link'] ? (
+                <a href={vendor['deviantart-link']} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                <Icon name="mdi:deviantart" class="text-2xl"/>
+                <span class="tooltip">Visit DeviantArt</span>
+                </a>
+            ) : null)}
+
+            {/* YouTube links */}
+            {Array.isArray(vendor['youtube-link']) ? (
+                vendor['youtube-link'].map((link, linkIndex) =>
+                link ? (
+                    <a href={link} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                    <Icon name="mdi:youtube" class="text-2xl"/>
+                    <span class="tooltip">Visit YouTube {linkIndex > 0 ? `(${linkIndex + 1})` : ''}</span>
+                    </a>
+                ) : null
+                )
+            ) : (vendor['youtube-link'] ? (
+                <a href={vendor['youtube-link']} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                <Icon name="mdi:youtube" class="text-2xl"/>
+                <span class="tooltip">Visit YouTube</span>
+                </a>
+            ) : null)}
+
+            {/* bandcamp links */}
+            {Array.isArray(vendor['bandcamp-link']) ? (
+                vendor['bandcamp-link'].map((link, linkIndex) =>
+                link ? (
+                    <a href={link} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                    <Icon name="mdi:bandcamp" class="text-2xl"/>
+                    <span class="tooltip">Visit bandcamp {linkIndex > 0 ? `(${linkIndex + 1})` : ''}</span>
+                    </a>
+                ) : null
+                )
+            ) : (vendor['bandcamp-link'] ? (
+                <a href={vendor['bandcamp-link']} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                <Icon name="mdi:bandcamp" class="text-2xl"/>
+                <span class="tooltip">Visit bandcamp</span>
+                </a>
+            ) : null)}
+
+            {/* Spotify links */}
+            {Array.isArray(vendor['spotify-link']) ? (
+                vendor['spotify-link'].map((link, linkIndex) =>
+                link ? (
+                    <a href={link} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                    <Icon name="mdi:bandcamp" class="text-2xl"/>
+                    <span class="tooltip">Visit bandcamp {linkIndex > 0 ? `(${linkIndex + 1})` : ''}</span>
+                    </a>
+                ) : null
+                )
+            ) : (vendor['spotify-link'] ? (
+                <a href={vendor['spotify-link']} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                <Icon name="mdi:spotify" class="text-2xl"/>
+                <span class="tooltip">Visit Spotify</span>
+                </a>
+            ) : null)}
+
+            {/* SoundCloud links */}
+            {Array.isArray(vendor['soundcloud-link']) ? (
+                vendor['soundcloud-link'].map((link, linkIndex) =>
+                link ? (
+                    <a href={link} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                    <Icon name="mdi:soundcloud" class="text-2xl"/>
+                    <span class="tooltip">Visit SoundCloud {linkIndex > 0 ? `(${linkIndex + 1})` : ''}</span>
+                    </a>
+                ) : null
+                )
+            ) : (vendor['soundcloud-link'] ? (
+                <a href={vendor['soundcloud-link']} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                <Icon name="mdi:soundcloud" class="text-2xl"/>
+                <span class="tooltip">Visit SoundCloud</span>
+                </a>
+            ) : null)}
+
+            {/* Tumblr links */}
+            {Array.isArray(vendor['tumblr-link']) ? (
+                vendor['tumblr-link'].map((link, linkIndex) =>
+                link ? (
+                    <a href={link} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                    <Icon name="tumblr" class="text-2xl"/>
+                    <span class="tooltip">Visit Tumblr {linkIndex > 0 ? `(${linkIndex + 1})` : ''}</span>
+                    </a>
+                ) : null
+                )
+            ) : (vendor['tumblr-link'] ? (
+                <a href={vendor['tumblr-link']} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                <Icon name="tumblr" class="text-2xl"/>
+                <span class="tooltip">Visit Tumblr</span>
+                </a>
+            ) : null)}
+
+            {/* Instagram links */}
+            {Array.isArray(vendor['instagram-link']) ? (
+                vendor['instagram-link'].map((link, linkIndex) =>
+                link ? (
+                    <a href={link} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                    <Icon name="mdi:instagram" class="text-2xl"/>
+                    <span class="tooltip">Visit Instagram {linkIndex > 0 ? `(${linkIndex + 1})` : ''}</span>
+                    </a>
+                ) : null
+                )
+            ) : (vendor['instagram-link'] ? (
+                <a href={vendor['instagram-link']} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                <Icon name="mdi:instagram" class="text-2xl"/>
+                <span class="tooltip">Visit Instagram</span>
+                </a>
+            ) : null)}
+
+            {/* Other/Website links */}
+            {Array.isArray(vendor['other-link']) ? (
+                vendor['other-link'].map((link, linkIndex) =>
+                link ? (
+                    <a href={link} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                    <Icon name="mdi:web" class="text-2xl"/>
+                    <span class="tooltip">Visit website {linkIndex > 0 ? `(${linkIndex + 1})` : ''}</span>
+                    </a>
+                ) : null
+                )
+            ) : (vendor['other-link'] ? (
+                <a href={vendor['other-link']} target="_blank" rel="noopener noreferrer" class="tooltip-trigger relative mr-2">
+                <Icon name="mdi:web" class="text-2xl"/>
+                <span class="tooltip">Visit website</span>
+                </a>
+            ) : null)}
+            </div>
+        </div>
+        </div>
+    </fragment>
+))}
+
+<style>
+    @reference "tailwindcss";
+    .absolute-centered {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .pixelated-img {
+        image-rendering: pixelated;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: crisp-edges;
+    }
+    .tooltip {
+        @apply absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none sm:scale-100 scale-[0.59]
+        bg-gray-800/80 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10 opacity-0 transition-opacity;
+    }
+    .tooltip-trigger:hover .tooltip {
+        @apply opacity-100;
+    }
+
+    .tooltip-trigger {
+        position: relative;
+    }
+
+    /* Rendered markdown for vendor descriptions */
+    .vendor-description p {
+        text-indent: 2rem; /* matches the old .indent-8 look */
+        margin-bottom: 1rem;
+    }
+
+    .vendor-description p:last-child {
+        margin-bottom: 0;
+    }
+
+    .vendor-description ul,
+    .vendor-description ol {
+        margin: 0 0 1rem 1.5rem;
+    }
+
+    .vendor-description ul {
+        list-style: disc;
+    }
+
+    .vendor-description ol {
+        list-style: decimal;
+    }
+
+    .vendor-description a {
+        text-decoration: underline;
+    }
+
+    .vendor-description strong {
+        font-weight: 700;
+    }
+
+    .vendor-description em {
+        font-style: italic;
+    }
+
+    .vendor-description blockquote {
+        border-left: 3px solid #d1d5db;
+        padding-left: 0.75rem;
+        margin: 0 0 1rem 0;
+        color: #4b5563;
+    }
+
+    .vendor-description code {
+        background: #f3f4f6;
+        padding: 0.1rem 0.3rem;
+        border-radius: 0.25rem;
+        font-size: 0.9em;
+    }
+
+    /* Modal visibility toggle */
+    input[type="radio"]:checked + div {
+        opacity: 1;
+        pointer-events: auto;
+    }
+</style>

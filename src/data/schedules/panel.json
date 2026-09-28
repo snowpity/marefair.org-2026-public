@@ -1,0 +1,151 @@
+{
+    "assignments": [
+        {
+            "context": "PANEL",
+            "context-id": "104",
+            "room-or-table-id": "Mare Stage",
+            "start-time": "2026-08-28 08:00:00",
+            "end-time": "2026-08-28 10:00:00",
+            "business-name": "Mare Fair",
+            "application-name": "Operating Hours",
+            "questions": [
+                {
+                    "id": "22",
+                    "title": "Official panel description",
+                    "answer": ""
+                },
+                {
+                    "id": "32",
+                    "title": "Rate your panel",
+                    "answer": "NOT A PANEL"
+                }
+            ]
+        },
+        {
+            "context": "PANEL",
+            "context-id": "104",
+            "room-or-table-id": "Flood Bored's Wizard Tower",
+            "start-time": "2026-08-28 08:00:00",
+            "end-time": "2026-08-28 10:00:00",
+            "business-name": "Mare Fair",
+            "application-name": "Operating Hours",
+            "questions": [
+                {
+                    "id": "22",
+                    "title": "Official panel description",
+                    "answer": ""
+                },
+                {
+                    "id": "32",
+                    "title": "Rate your panel",
+                    "answer": "NOT A PANEL"
+                }
+            ]
+        },
+        {
+            "context": "PANEL",
+            "context-id": "104",
+            "room-or-table-id": "Crypt Of The Undead Conventions",
+            "start-time": "2026-08-28 08:00:00",
+            "end-time": "2026-08-28 10:00:00",
+            "business-name": "Mare Fair",
+            "application-name": "Operating Hours",
+            "questions": [
+                {
+                    "id": "22",
+                    "title": "Official panel description",
+                    "answer": ""
+                },
+                {
+                    "id": "32",
+                    "title": "Rate your panel",
+                    "answer": "NOT A PANEL"
+                }
+            ]
+        },
+        {
+            "context": "PANEL",
+            "context-id": "104",
+            "room-or-table-id": "Fair Flyer's Fairy Ring",
+            "start-time": "2026-08-28 08:00:00",
+            "end-time": "2026-08-28 10:00:00",
+            "business-name": "Mare Fair",
+            "application-name": "Operating Hours",
+            "questions": [
+                {
+                    "id": "22",
+                    "title": "Official panel description",
+                    "answer": ""
+                },
+                {
+                    "id": "32",
+                    "title": "Rate your panel",
+                    "answer": "NOT A PANEL"
+                }
+            ]
+        },
+        {
+            "context": "PANEL",
+            "context-id": "104",
+            "room-or-table-id": "Dark Lord Anon's OC Dungeon",
+            "start-time": "2026-08-28 08:00:00",
+            "end-time": "2026-08-28 10:00:00",
+            "business-name": "Mare Fair",
+            "application-name": "Operating Hours",
+            "questions": [
+                {
+                    "id": "22",
+                    "title": "Official panel description",
+                    "answer": ""
+                },
+                {
+                    "id": "32",
+                    "title": "Rate your panel",
+                    "answer": "NOT A PANEL"
+                }
+            ]
+        },
+        {
+            "context": "PANEL",
+            "context-id": "104",
+            "room-or-table-id": "Nasapone's Room",
+            "start-time": "2026-08-28 08:00:00",
+            "end-time": "2026-08-28 10:00:00",
+            "business-name": "Mare Fair",
+            "application-name": "Operating Hours",
+            "questions": [
+                {
+                    "id": "22",
+                    "title": "Official panel description",
+                    "answer": ""
+                },
+                {
+                    "id": "32",
+                    "title": "Rate your panel",
+                    "answer": "NOT A PANEL"
+                }
+            ]
+        },
+        {
+            "context": "PANEL",
+            "context-id": "104",
+            "room-or-table-id": "Renegade Stage",
+            "start-time": "2026-08-28 08:00:00",
+            "end-time": "2026-08-28 10:00:00",
+            "business-name": "Mare Fair",
+            "application-name": "Operating Hours",
+            "questions": [
+                {
+                    "id": "22",
+                    "title": "Official panel description",
+                    "answer": ""
+                },
+                {
+                    "id": "32",
+                    "title": "Rate your panel",
+                    "answer": "NOT A PANEL"
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,43 @@
+---
+
+---
+
+<div
+    class="prose
+        max-w-none
+        prose-tr:border-black
+        prose-thead:border-black
+
+        prose-h1:font-bold prose-h1:text-xl
+        prose-h2:p-0 sm:prose-h2:text-7xl prose-h2:text-4xl prose-h2:text-center prose-h2:my-5
+        prose-img:rounded-xl
+        prose-headings:underline
+        prose-a:text-white prose-a:bg-blue-500 prose-a:px-1 prose-a:rounded-sm prose-a:no-underline prose-a:transition-colors
+        prose-a:duration-300 prose-a:hover:bg-blue-700 prose-a:text-center prose-a:mx-auto prose-a:block prose-a:p-2
+        prose-p:text-justify sm:prose-p:text-2xl prose-p:text-base
+
+        sm:prose-p:my-[2.055rem]
+        prose-p:my-[1.7125rem]
+
+        sm:prose-h2:my-8
+
+        sm:prose-li:text-2xl sm:prose-ul:text-2xl prose-li:text-base prose-ul:text-base
+        prose-li:marker:text-white
+        prose-li:my-0
+
+        mx-auto min-w-full
+        prose-strong:text-white
+  ">
+  <slot />
+</div>
+
+<style>
+    @reference "tailwindcss";
+    /* I'm doing this because I need <a> in li to not be a box */
+    :global(.prose li a) {
+        @apply !inline !bg-transparent !text-blue-300 !p-0 !m-0 !rounded-none !underline !transition-colors;
+    }
+    :global(.prose li a:hover) {
+        @apply !text-blue-200 !bg-transparent ;
+    }
+</style>

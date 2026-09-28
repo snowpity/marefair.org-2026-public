@@ -1,0 +1,451 @@
+---
+import { Image, getImage } from "astro:assets";
+import Layout from "@layouts/Layout.astro";
+//import Back from "@components/Back.astro";
+//import Tapes from '@components/Tapes.astro';
+
+import map1 from "@assets/vendors/stalls2b.png";
+
+import { adCoords, vendorCoords, artistAlleyCoord, transformVendorData} from "@components/VendorData" // Store vendor list here (or do it properly with json endpoint)
+import VendorModal from '@components/VendorModal.astro'; // Reusable modal
+import BgTileable from '@components/BgTileable.astro';
+import woodRaw from "@assets/bg/wood.png";
+const wood = await getImage({ src: woodRaw, format:"png", height:2048});
+
+const iconDefault = "https://fair-filer.marefair.org/2025/vendors/icon.webp";
+
+const BASE_URL = import.meta.env.SCHEDULE_API;
+
+const [apiRes, adApiRes, artistApiRes] = await Promise.all([
+    fetch(`${BASE_URL}?c=vendor`),
+    fetch(`${BASE_URL}?c=advendor`),
+    fetch(`${BASE_URL}?c=artist`),
+]);
+const apiData: { assignments: any[] } = await apiRes.json();
+const adApiData: { assignments: any[] } = await adApiRes.json();
+const artistApiData: { assignments: any[] } = await artistApiRes.json();
+
+const vendors = transformVendorData(apiData.assignments || [], vendorCoords);
+const ads = transformVendorData(adApiData.assignments || [], adCoords);
+const artists = transformVendorData(artistApiData.assignments || [], adCoords);
+
+// Group Artist Alley artists by day for the shared grid modal.
+const dayOrder = ["Friday", "Saturday", "Sunday"];
+const artistsByDay = dayOrder
+    .map((day) => ({ day, list: artists.filter((artist) => artist.day === day) }))
+    .filter((group) => group.list.length > 0);
+
+// I have to do this because in the API, it's set up so the first person to appear in the day is together, like 1st of Fri and 1st of Sat for some damn reason.
+const artistsFlatByDay = artistsByDay.flatMap((group) => group.list);
+---
+
+<Layout title="Vendors | Mare Fair 2026">
+    <BgTileable imgSrc={wood.src} vignette stain/>
+
+    <div id="main" class="overflow-hidden">
+        <input type="radio" name="vendor-toggle" id="default-vendor-toggle" class="hidden" checked/>
+        <VendorModal vendors={vendors} iconDefault={iconDefault} prefix="vendor" map_prefix="" isArtistAlley={false}/>
+
+        <input type="radio" name="ad-toggle" id="default-ad-toggle" class="hidden" checked/>
+        <VendorModal vendors={ads} iconDefault={iconDefault} prefix="ad" map_prefix="" isArtistAlley={false}/>
+
+        <input type="radio" name="artist-toggle" id="default-artist-toggle" class="hidden" checked/>
+        <VendorModal vendors={artists} iconDefault={iconDefault} prefix="artist" map_prefix="-artist" isArtistAlley={true}/>
+
+        {/* ARTIST ALLEY - shared grid modal, opened from the map, links out to each artist's own VendorModal */}
+        <input type="radio" name="artist-toggle" id="Artist-Alley-toggle" class="hidden" />
+        <div id="Artist-Alley" class="fixed w-screen h-screen z-30 opacity-0 pointer-events-none bg-black/60 reddit-sans transition-[opacity,backdrop-filter] duration-200">
+            <label for="default-artist-toggle" class="absolute inset-0 w-full h-full cursor-pointer"></label>
+            <div class="absolute-centered bg-white overflow-y-auto w-[40rem] max-w-[100vw] max-h-[80vh] min-h-[25rem] h-auto rounded-xl p-10 shadow-xl shadow-black/30">
+                <h2 class="text-2xl font-bold mb-6 text-center">Artist Alley</h2>
+                {artistsByDay.map((group, groupIndex) => (
+                    <>
+                        {groupIndex > 0 && <hr class="my-6 border-t-2 border-black/30"/>}
+                        <h3 class="text-xl font-bold mb-4 text-center">{group.day}</h3>
+                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-4">
+                            {group.list.map((artist) => (
+                                <label for={`${artist.id}-artist-toggle`} class="cursor-pointer group flex flex-col items-center">
+                                    {artist['icon-src'] && artist['icon-src'].length > 0 ? (
+                                        <img src={artist['icon-src']} alt={artist.name} width="100" height="100" class="w-full aspect-square object-cover rounded shadow-md shadow-black/30 group-hover:scale-105 transition-transform duration-150"/>
+                                    ) : (
+                                        <img src={iconDefault} alt={artist.name} width="100" height="100" class="w-full aspect-square object-cover rounded shadow-md shadow-black/30 pixelated-img group-hover:scale-105 transition-transform duration-150"/>
+                                    )}
+                                    <span class="mt-2 text-center">{artist.name}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </>
+                ))}
+            </div>
+        </div>
+
+        <div id="vendor-list" class="fixed paper lg:top-0 lg:right-0 bottom-0 right-1/2 lg:translate-x-0 translate-x-1/2 lg:w-[35%] w-[90%] lg:max-h-[calc(100%-5rem)] max-h-[25vh] h-fit lg:m-10 m-0 mb-14 bg-white rounded-xl shadow-[0_0_15px_5px] shadow-black/50 reddit-sans overflow-y-auto z-20">
+            {/*
+            <div class="flex justify-center flex-wrap max-w-xs mx-auto sm:max-w-none sm:flex-row sm:space-x-4 gap-2 sm:gap-0 py-5">
+                <div id="legend-general" class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                    <div class="bg-lime-500 w-4 h-4"></div>
+                    <div>
+                        General Merch
+                    </div>
+                </div>
+                <div id="legend-plush" class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                    <div class="bg-cyan-500 w-4 h-4"></div>
+                    <div>
+                        Plush
+                    </div>
+                </div>
+                <div id="legend-charity" class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                    <div class="bg-amber-300 w-4 h-4"></div>
+                    <div>
+                        Charity
+                    </div>
+                </div>
+                <div id="legend-craft" class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                    <div class="bg-violet-600 w-4 h-4"></div>
+                    <div>
+                        Crafts
+                    </div>
+                </div>
+            </div>
+            */}
+            <center class="strong text-4xl lg:p-10 p-8 pb-0 font-bold"> VENDOR HALL </center>
+            <ol class="list-decimal list-inside p-[5%] lg:columns-2 md:columns-3 columns-2 gap-8 py-0">
+                {vendors.map((vendor) => (
+                    <div class="grid grid-cols-[3rem_1fr]">
+                        <span class="font-mono">{vendor.id}.</span>
+                        <label for={`${vendor.id}-highlight`} class="highlight-trigger hover:underline cursor-pointer">{vendor.name}</label>
+                    </div>
+                ))}
+            </ol>
+
+            <center class="strong text-4xl lg:p-10 p-8 pb-0 font-bold"> ARTIST ALLEY </center>
+            <ol class="list-decimal list-inside p-[5%] g:columns-2 columns-2 gap-8 pt-0">
+                {artistsFlatByDay.map((artist,index) => (
+                    <div class="grid grid-cols-[3rem_1fr]">
+                        <span class="font-mono">{index + 1}.</span> {/* I basically hijacked the normal vendor ID system for this. Woe is me, I have to do indexing like a pleb */}
+                        <label for={`${artist.id}-artist-toggle`} class="highlight-trigger hover:underline cursor-pointer">{artist.name}</label>
+                    </div>
+                ))}
+            </ol>
+
+            <center class="pb-5">
+                <p class="font-bold text-2xl pb-1">OPERATING HOURS </p>
+                <p> <strong>Friday: </strong> 11:30AM - 6:00PM </p>
+                <p> <strong>Saturday: </strong> 10:30AM - 12:00PM, 1:30PM - 6:00PM </p>
+                <p> <strong>Sunday: </strong> 10:30AM - 5:00PM </p>
+                <p class="text-stone-600">High tier sponsors get in 30 minutes earlier. </p>
+            </center>
+            {/* Todo: list all Artist Alley participant here */}
+
+            <hr class="mx-5 border-t-2 border-black/30"/>
+            <center class="strong text-4xl lg:p-10 p-8 pb-0 font-bold"> AFTER DARK HALL </center>
+            <ol class="list-decimal list-inside p-[5%] lg:columns-2 md:columns-3 columns-2 gap-8 pt-0">
+                {ads.map((vendor) => (
+                    <div class="grid grid-cols-[3rem_1fr]">
+                        <span class="font-mono">{vendor.id.replace(/\s+/g, '')}.</span>
+                        <label for={`${vendor.id}-highlight`} class="highlight-trigger hover:underline cursor-pointer">{vendor.name}</label>
+                    </div>
+                ))}
+            </ol>
+
+            <center class="pb-5">
+                <p class="font-bold text-2xl pb-1">OPERATING HOURS </p>
+                <p> <strong>Friday: </strong>  9:30PM - 12:30AM </p>
+                <p> <strong>Saturday: </strong>  9:30PM - 11:30PM </p>
+                <p> <strong>Sunday: </strong>  10:30AM - 5:00PM </p>
+                <p class="text-stone-600">High tier sponsors get in 30 minutes earlier. </p>
+            </center>
+        </div>
+
+        <div id="vendor-map-wrapper" class="p-3 sm:scale-100 scale-170 sm:mt-5 sm:mb-5 mt-48 mb-48 sm:translate-x-0 -translate-x-[2%]">
+            <div class="lg:ml-auto lg:mr-[40%] mx-auto w-fit max-w-[100vw] relative z-10">
+
+                <Image format="avif" src={map1} alt="venue map" class="pointer-events-none shadow-xl shadow-black/50 rounded-xl overflow-hidden"/>
+
+                <label for={`default-highlight`} class="absolute top-0 w-full h-full opacity-0 bg-opacity-0 cursor-grab active:cursor-grabbing"/> {/* The default label has to be on top so it wouldn't be affected by highlighting */}
+                <input type="radio" name="vendor-highlight" id="default-highlight" class="hidden" checked/> {/* For + label to work, it has to be right above it */}
+
+                {/* VENDORS */}
+                {vendors.map((vendor) => (
+                <input type="radio" name="vendor-highlight" id={`${vendor.id}-highlight`} class="hidden" />
+                <label id={`${vendor.id}-map`} for={`${vendor.id}-toggle`} class="highlight bg-black/0 hover:bg-black/20 cursor-pointer absolute tooltip-trigger transition-all duration-300"
+                    style={`
+                        width: ${vendor.w};
+                        height: ${vendor.h};
+                        top: ${vendor.t};
+                        left: ${vendor.l};`
+                    }>
+                    <div class="vendor-map-id"><span class="vendor-map-id-badge">{vendor.id}</span></div>
+                    <span class="tooltip !text-xl">{vendor.name}</span>
+                </label>
+                ))}
+
+                {/* AFTER DARK VENDORS */}
+                {ads.map((vendor) => (
+                <input type="radio" name="vendor-highlight" id={`${vendor.id}-highlight`} class="hidden" />
+                <label id={`${vendor.id}-map`} for={`${vendor.id}-toggle`} class="highlight bg-black/0 hover:bg-black/20 cursor-pointer absolute tooltip-trigger transition-all duration-300"
+                    style={`
+                        width: ${vendor.w};
+                        height: ${vendor.h};
+                        top: ${vendor.t};
+                        left: ${vendor.l};`
+                    }>
+                    <div class="vendor-map-id"><span class="vendor-map-id-badge">{vendor.id}</span></div>
+                    <span class="tooltip !text-xl">{vendor.name}</span>
+                </label>
+                ))}
+                {/* ARTIST ALLEY */}
+                <input type="radio" name="vendor-highlight" id="Artist-Alley-highlight" class="hidden" />
+                <label id={`Artist-Alley-map`} for={`Artist-Alley-toggle`} class="highlight bg-black/0 hover:bg-black/20 cursor-pointer absolute tooltip-trigger transition-all duration-300"
+                    style={`
+                        width: ${artistAlleyCoord.w};
+                        height: ${artistAlleyCoord.h};
+                        top: ${artistAlleyCoord.t};
+                        left: ${artistAlleyCoord.l};`
+                    }>
+                    <div class="vendor-map-id"><span class="vendor-map-id-badge">AA</span></div>
+                    <span class="tooltip !text-xl"> Artist Alley </span>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div id="footer-space-extra" class="lg:h-0 h-[30vh] w-full"/>
+</Layout>
+
+<style is:global> /* Get rid of the global footer just for this */
+    @reference "tailwindcss";
+    #footer-space {
+        display: none;
+    }
+
+    input[type="radio"][name="vendor-toggle"]:checked + div {
+        @apply opacity-100 pointer-events-auto backdrop-blur-sm transition-[opacity,backdrop-filter] duration-200;
+    }
+    input[type="radio"][name="vendor-ad-toggle"]:checked + div {
+        @apply opacity-100 pointer-events-auto backdrop-blur-sm transition-[opacity,backdrop-filter] duration-200;
+    }
+    input[type="radio"][name="artist-toggle"]:checked + div {
+        @apply opacity-100 pointer-events-auto backdrop-blur-sm transition-[opacity,backdrop-filter] duration-200;
+    }
+
+    .tooltip {
+        @apply absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none sm:scale-100 scale-[0.59]
+        bg-gray-800/80 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10 opacity-0 transition-opacity;
+    }
+
+    .tooltip-trigger:hover .tooltip {
+        @apply opacity-100;
+    }
+</style>
+
+<style>
+    @reference "tailwindcss";
+    .switch-button{
+        @apply h-full object-cover pointer-events-none bg-black/90 rounded-[24px] border-4 border-black p-2;
+    }
+    #to-afterdark {
+        @apply block;
+    }
+    #to-main {
+        @apply hidden;
+    }
+    /* Target the buttons when afterdark is active */
+    body:has(#afterdark:target) #to-afterdark {
+        @apply hidden;
+    }
+    body:has(#afterdark:target) #to-main {
+        @apply block;
+    }
+
+    #afterdark:target ~ #main {
+        @apply hidden;
+    }
+    #afterdark:target {
+        @apply block;
+    }
+
+    .paper {
+        background-image: var(--paper-bg);
+        background-color: antiquewhite;
+    }
+
+    .absolute-centered{
+        @apply absolute left-1/2 top-1/2 transform -translate-y-1/2 -translate-x-1/2;
+    }
+
+    /* Highlight vendor */
+    /*
+    .highlight:target {
+        @apply bg-blue-500 bg-opacity-30 border-2 border-blue-400;
+        animation: highlight-pulse 1s ease-in-out;
+    }
+    */
+
+    input[type="radio"][name="vendor-highlight"]:checked + label {
+        @apply bg-blue-500/60 border-4 border-red-400/30;
+        animation: highlight-pulse 1s ease-in-out infinite;
+    }
+    input[type="radio"][name="vendor-ad-highlight"]:checked + label {
+        @apply bg-blue-500/60 border-4 border-red-400/30;
+        animation: highlight-pulse 1s ease-in-out infinite;
+    }
+
+    .vendor-map-id {
+        @apply absolute inset-0 flex items-center justify-center pointer-events-none;
+    }
+
+    .vendor-map-id-badge {
+        @apply inline-flex items-center justify-center leading-none sm:text-xs text-[2vw] text-center font-bold text-white bg-black/70 rounded-full px-1.5 h-[100%] w-[100%] aspect-square;
+        max-width: 2rem;
+        max-height: 2rem;
+    }
+
+    @keyframes highlight-pulse {
+        0% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    /* Experimental, will try to fit the target div center of the screen when selected*/
+    /*
+    [id] {
+        scroll-margin-top: 50vh;
+    }
+    */
+
+    .pixelated-img {
+        image-rendering: pixelated
+    }
+</style>
+
+<script>
+    // radio button doesn't have the equivalence of scroll-margin-top, script will do.
+    function eventScrollHandler(queryName: string, highlightSuffix: string, mapSuffix: string)
+    {
+        const vendorRadios = document.querySelectorAll(queryName);
+
+        //console.log('Found vendor radios:', vendorRadios.length);
+
+        vendorRadios.forEach(radio => {
+            radio.addEventListener('change', function(event) {
+                const target = event.currentTarget as HTMLInputElement;
+
+                if (target.checked) {
+                    // Get the corresponding label using the radio button's ID
+                    const labelId = target.id.replace(highlightSuffix, mapSuffix);
+                    const targetLabel = document.getElementById(labelId);
+
+                    //console.log(labelId);
+
+                    if (targetLabel) {
+                        // Get the label's position and dimensions
+                        const labelRect = targetLabel.getBoundingClientRect();
+                        const viewportHeight = window.innerHeight;
+
+                        // Calculate the center of the label
+                        const labelCenterY = labelRect.top + labelRect.height / 2;
+
+                        // Calculate scroll position to center the label
+                        const scrollY = window.scrollY + labelCenterY - viewportHeight / 2;
+
+                        // Smooth scroll to the calculated position
+                        window.scrollTo({
+                            top: Math.max(0, scrollY),
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            });
+        });
+    }
+
+    function initializeEventHandlers() {
+        eventScrollHandler('input[name="vendor-highlight"]:not(#default-highlight)', '-highlight', '-map');
+        eventScrollHandler('input[name="vendor-ad-highlight"]:not(#default-ad-highlight)', '-highlight', '-map');
+    }
+
+    document.addEventListener('astro:page-load', initializeEventHandlers);
+
+    if (document.readyState !== 'loading') {
+        initializeEventHandlers();
+    }
+</script>
+
+<script>
+    // Kinda like /map, but mobile already scrolls this page natively via touch, so this only wires up mouse drag,
+    // panning the window itself since the map here isn't inside its own scroll container (unlike /map).
+    function initVendorDragPan() {
+        const wrapper = document.getElementById('vendor-map-wrapper');
+        if (!wrapper)
+            return;
+
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let scrollX = 0;
+        let scrollY = 0;
+        let hasMoved = false;
+        const DRAG_THRESHOLD = 5; // px, below this is a click, above is a drag
+
+        wrapper.addEventListener('mousedown', (e: MouseEvent) => {
+            // Only activate on left mouse button
+            if (e.button !== 0) return;
+            isDragging = true;
+            hasMoved = false;
+            startX = e.clientX;
+            startY = e.clientY;
+            scrollX = window.scrollX;
+            scrollY = window.scrollY;
+            wrapper.style.cursor = 'grabbing';
+            document.body.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', (e: MouseEvent) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            if (!hasMoved && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
+                hasMoved = true;
+            }
+
+            if (hasMoved) {
+                window.scrollTo(scrollX - dx, scrollY - dy);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            wrapper.style.cursor = '';
+            document.body.style.userSelect = '';
+        });
+
+        // Suppress click on all children if a drag just happened,
+        // so vendor labels don't open a modal right after a pan gesture.
+        wrapper.addEventListener('click', (e: MouseEvent) => {
+            if (hasMoved) {
+                e.stopPropagation();
+                e.preventDefault();
+                hasMoved = false;
+            }
+        }, true); // capture phase so it runs before label/input handlers
+    }
+
+    document.addEventListener('astro:page-load', () => {
+        initVendorDragPan();
+    });
+
+    if (document.readyState !== 'loading') {
+        initVendorDragPan();
+    }
+</script>

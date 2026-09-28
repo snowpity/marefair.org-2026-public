@@ -1,0 +1,528 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+import ScrapbookEntry from '@components/ScrapbookEntry.astro';
+import ScrapbookOverlay from '@components/ScrapbookOverlay.astro';
+
+import {content} from '@components/scrapbook_contents'
+
+import book from "@assets/scrapbook/book_book.png";
+import book_anim from "@assets/scrapbook/animated parts/book_frontpage_static_baked.png";
+import book_anim1 from "@assets/scrapbook/animated parts/book_frontpage_moving_baked.webp";
+import book_erased from "@assets/scrapbook/animated parts/blink.webp";
+
+import ink from "@assets/scrapbook/prop_inkpot_brush.png"
+import erase from "@assets/scrapbook/prop_inkpot_eraser.png"
+import quill from "@assets/scrapbook/prop_quill.png"
+import scroll from "@assets/scrapbook/prop_scroll.png"
+import table from "@assets/scrapbook/prop_table.png"
+const table1 = await getImage({ src: table, format:"avif", height:1080});
+
+import arrow_right from "@assets/scrapbook/book_arrow_right.png"
+import arrow_left from "@assets/scrapbook/book_arrow_left.png"
+
+import book_webm from "@assets/scrapbook/animated parts/book_frontpage_moving.webm"
+
+const book_anim_img  = await getImage({ src: book_anim,  format: "avif", height: 710 });
+const book_anim1_img = await getImage({ src: book_anim1, format: "webp",  width: 330 });
+
+const imageCount = content.length;
+const pageCount = Math.ceil(( imageCount + 5 ) / 10); // +5 for the front page
+---
+<Layout title="scrapbook | Mare Fair 2026">
+    {Array.from({ length: pageCount }, (_, i) => (
+        <input type="radio" id={`page${i + 1}`} name="page_selection" class="hidden" checked={i === 0} />
+    ))}
+    <div class="-z-1 absolute top-0 left-0 h-[100dvh] w-screen" style={`background-image: url(${table1.src}); background-size: auto 100%; background-repeat: repeat-x;`}/>
+    <div class="w-screen h-screen flex flex-row items-center justify-center">
+    <div class="md:flex hidden flex-col h-[80dvh] w-[calc(80dvh*(200/850))] shrink-0 ">
+        <Image src={quill} width={200} alt=""/>
+        <Image src={ink}   id="ink" width={200} alt=""/>
+        <Image src={erase} id="erase" width={200} alt=""/>
+    </div>
+    <div id="book-scroll-wrapper" class="md:contents w-screen overflow-x-auto overflow-y-hidden" style="scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;">
+        <div class="relative flex-shrink-0 aspect-[2562/1851] md:aspect-auto md:h-screen md:max-h-[1080px]" data-book-sizer>
+        <div id="book-container" class="absolute inset-0">
+        <Image src={book} height={1080} alt="" class="absolute inset-0 w-full h-full object-contain max-w-none" inert/>
+
+        {Array.from({ length: pageCount }, (_, i) => {
+            const isFirstPage = i === 0;
+            const leftSliceStart = isFirstPage ? 0 : 5 + (i - 1) * 10;
+            const leftSliceEnd   = isFirstPage ? 5 : 5 + (i - 1) * 10 + 5;
+            const rightSliceStart = isFirstPage ? undefined : leftSliceEnd;
+            const rightSliceEnd   = isFirstPage ? undefined : leftSliceEnd + 5;
+
+            return (
+                <div id={`page${i + 1}-wrap`}>
+                    {isFirstPage && (
+                        <>
+                        <div id="" class="page1 absolute top-[14.5%] left-[7.6%] w-[42.5%] h-[80%] snap-center" inert>
+                            <Image src={book_erased} width={330} alt="" class="absolute bottom-[4.1%] w-[33.8%] left-[38.3%]"></Image>
+                        </div>
+                        {/* No-JS fallback — hidden by JS once canvas is ready */}
+                        <div id="front" class="page1 absolute top-[14.5%] left-[7.6%] w-[42.5%] h-[80%] snap-center" inert>
+                            <Image src={book_anim} height={710} alt="" class="w-full h-full object-contain"/>
+                            <Image src={book_anim1} width={330} alt="" class="absolute bottom-[17.1%] w-[52%] left-[24.6%]"/>
+                        </div>
+                        {/* Canvas replaces #front when JS is available */}
+                        <canvas id="front-canvas-video" class="page1 absolute top-[14.5%] left-[7.6%] w-[42.5%] h-[80%] snap-center hidden"></canvas>
+                        <canvas id="front-canvas-drawing" class="page1 absolute top-[14.5%] left-[7.6%] w-[42.5%] h-[80%] pointer-events-none hidden" style="cursor: crosshair;"></canvas>
+                        <canvas id="front-canvas-erase" class="page1 absolute top-[14.5%] left-[7.6%] w-[42.5%] h-[80%] opacity-0 pointer-events-none hidden" style="cursor: crosshair;"></canvas>
+                        </>
+                    )}
+
+                    {/* Left page */}
+                    {!isFirstPage && (
+                        <div class="page1 absolute top-[10%] left-[10%] w-[38%] h-[80%] snap-center">
+                            {content.slice(leftSliceStart, leftSliceEnd).map((image, index) => {
+                                const globalIndex = leftSliceStart + index;
+                                return (
+                                    <ScrapbookEntry
+                                        image={image}
+                                        index={globalIndex}
+                                    />
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {/* Right page */}
+                    <div class="page2 absolute right-[10%] w-[38%] top-[10%] h-[80%] snap-center">
+                        {content.slice(
+                            isFirstPage ? 0 : rightSliceStart,
+                            isFirstPage ? 5 : rightSliceEnd
+                        ).map((image, index) => {
+                            const globalIndex = (isFirstPage ? 0 : rightSliceStart!) + index;
+                            return (
+                                <ScrapbookEntry
+                                    image={image}
+                                    index={globalIndex}
+                                />
+                            );
+                        })}
+                    </div>
+
+                    {i > 0 && (
+                        <label tabindex="0" aria-label="Previous page" for={`page${i}`} class="page-nav left-[10%] w-[7%]">
+                            <Image src={arrow_left} width="100" alt="" class=""/>
+                        </label>
+                    )}
+                    {i < pageCount - 1 && (
+                        <label tabindex="0" aria-label="Next page" for={`page${i + 2}`} class="page-nav right-[10%] w-[7%]">
+                            <Image src={arrow_right} width="100" alt="" class=""/>
+                        </label>
+                    )}
+                </div>
+            );
+        })}
+    </div>
+        </div>
+    </div>
+
+    <Image src={scroll} height={1080} class="md:block hidden ml-[2%] max-h-[80dvh] aspect-263/1080 w-auto -rotate-10 max-w-none" alt="" inert/>
+    </div>
+
+    <div id="cursor-follower" class="fixed pointer-events-none border border-white/50 rounded-full z-[100] hidden"></div>
+
+    {content.map((image, index) => (
+        <ScrapbookOverlay
+            image={image}
+            prevName={index > 0 ? content[index - 1].name.replace(/\s+/g, '') : undefined}
+            nextName={index < content.length - 1 ? content[index + 1].name.replace(/\s+/g, '') : undefined}
+        />
+    ))}
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+    .thumbnail-header {
+        @apply filter drop-shadow-lg transition-all duration-300 hover:scale-105;
+    }
+
+    .page-nav {
+        @apply absolute bottom-[10%] hover:drop-shadow-[0_0_2px_rgba(256,256,256,1)] cursor-pointer transition-all hover:scale-105;
+    }
+
+    #book-scroll-wrapper {
+        scrollbar-width: none; /* Firefox */
+    }
+    #book-scroll-wrapper::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+
+    .container h1 {
+        text-shadow: 4px 4px 1px black;
+    }
+
+    .container .content ul li a:hover .thumbs-name {
+        opacity: 1;
+        transform: rotate(360deg) scale(1);
+    }
+
+    .frame-item {
+        @apply transition-transform duration-500 hover:z-50 hover:drop-shadow-[0_0_10px_rgb(256,256,256)] /*bg-red-800*/;
+    }
+
+    @media (max-width: 767px) { /* Tailwind's medium */
+        .frame-item {
+            grid-column: 1 / -1 !important; /* Forces items to span full width */
+            width: 80%;
+            margin-left: auto;
+            margin-right:auto;
+        }
+    }
+    [data-book-sizer] {
+        width: 200vw;
+    }
+    @media (min-width: 768px) {
+        [data-book-sizer] {
+            width: calc(min(100dvh, 1080px) * (2562 / 1851));
+        }
+    }
+
+    #cursor-follower {
+        width: 36px; /* BRUSH_RADIUS * 2 */
+        height: 36px;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(0,0,0, 0.8);
+
+    }
+</style>
+
+<script define:vars={{ pageCount, contentNames: content.map(c => c.name.replace(/\s+/g, '')) }}>
+    function getPageForAnchor(anchor) {
+        const index = contentNames.indexOf(anchor);
+        if (index === -1) return null;
+
+        if (index < 5) return 1;
+        return Math.floor((index - 5) / 10) + 2;
+    }
+
+    function activatePageForHash() {
+        const hash = decodeURIComponent(window.location.hash.slice(1));
+        if (!hash) return;
+
+        const page = getPageForAnchor(hash);
+        if (!page) return;
+
+        const radio = document.getElementById(`page${page}`);
+        if (radio) radio.checked = true;
+    }
+
+    document.addEventListener('astro:page-load', () => {
+        activatePageForHash();
+        window.addEventListener('hashchange', activatePageForHash);
+    });
+
+    document.addEventListener('astro:page-load', () => {
+        const scrollWrapper = document.getElementById('book-scroll-wrapper');
+
+        function isMobile() { return window.innerWidth < 768; }
+
+        // Reset scroll to left when changing pages
+        document.querySelectorAll('.page-nav').forEach(label => {
+            label.addEventListener('click', () => {
+                if (isMobile() && scrollWrapper) scrollWrapper.scrollLeft = 0;
+            });
+            // ACCESSIBILITY: Keyboard activation
+            label.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    label.click();
+                }
+            });
+        });
+
+        // Reset scroll to left on resize to desktop
+        window.addEventListener('resize', () => {
+            if (!isMobile() && scrollWrapper) scrollWrapper.scrollLeft = 0;
+        });
+    });
+</script>
+
+<script define:vars={{ baseImgSrc: book_anim_img.src, overlayVideoSrc: book_webm}}>
+    // -- Paintable front-page canvas ------------------------------------------
+    // Images are loaded fresh as JS Image() objects from the getImage() URLs
+    // passed via define:vars — bypasses any CORS / timing issues with the DOM
+    // <img> elements. The eraser uses `destination-out` to cut real alpha holes.
+
+    function loadImage(src) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload  = () => resolve(img);
+            img.onerror = reject;
+            img.src = src;
+        });
+    }
+
+    document.addEventListener('astro:page-load', () => {
+        if (!isPaintEnabled())
+            return;
+
+        const frontDiv = document.getElementById('front');
+        const videoCanvas = document.getElementById('front-canvas-video');
+        const eraseCanvas = document.getElementById('front-canvas-erase');
+        const drawingCanvas = document.getElementById('front-canvas-drawing');
+        const eraseBtn = document.getElementById('erase');
+        const inkBtn   = document.getElementById('ink');
+
+        // JS only effect
+        eraseBtn.classList.add('cursor-pointer');
+        inkBtn.classList.add('cursor-pointer');
+
+        const follower = document.getElementById('cursor-follower');
+
+        if (!frontDiv || !videoCanvas || !eraseCanvas) return;
+
+        const videoCtx = videoCanvas.getContext('2d');
+        const eraseCtx = eraseCanvas.getContext('2d');
+        const drawingCtx = drawingCanvas.getContext('2d');
+        if (!videoCtx || !eraseCtx) return;
+
+        let baseImg     = null;
+        let overlayVideo = null;
+        let animFrameId  = null;
+
+        // -- Canvas sizing -----------------------------------------------------
+        function resizeCanvas() {
+            const rect = videoCanvas.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+
+            [videoCanvas, eraseCanvas, drawingCanvas].forEach(c => {
+                c.width = rect.width;
+                c.height = rect.height;
+            });
+
+            // fill erase canvas solid white so destination-out has something to cut through
+            eraseCtx.fillStyle = 'white';
+            eraseCtx.fillRect(0, 0, eraseCanvas.width, eraseCanvas.height);
+        }
+
+        // -- Draw base + current video frame onto the canvas -------------------
+        function drawImages() {
+            if (!baseImg || !overlayVideo) return;
+            const W = videoCanvas.width;
+            const H = videoCanvas.height;
+
+            // Clear the visible canvas
+            videoCtx.clearRect(0, 0, W, H);
+
+            // Draw the images/video normally first
+            videoCtx.globalCompositeOperation = 'source-over';
+
+            const scale = Math.min(W / baseImg.naturalWidth, H / baseImg.naturalHeight);
+            const dw = baseImg.naturalWidth * scale;
+            const dh = baseImg.naturalHeight * scale;
+            videoCtx.drawImage(baseImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
+
+            const oW = W * 0.52;
+            const oH = oW * (overlayVideo.videoHeight / overlayVideo.videoWidth);
+            videoCtx.drawImage(overlayVideo, W * 0.246, H - H * 0.171 - oH, oW, oH);
+
+            // Apply the mask
+            // 'destination-in' keeps the image ONLY where the mask (eraseCanvas) is opaque.
+            videoCtx.globalCompositeOperation = 'destination-in';
+            videoCtx.drawImage(eraseCanvas, 0, 0);
+        }
+        // -- Render loop -------------------------------------------------------
+        function startLoop() {
+            function tick() {
+                drawImages();
+                animFrameId = requestAnimationFrame(tick);
+            }
+            animFrameId = requestAnimationFrame(tick);
+        }
+
+        // -- Tool state --------------------------------------------------------
+        let activeTool = 'none';
+        let isDrawing  = false;
+        let lastX = 0, lastY = 0;
+        const BRUSH_RADIUS = 18;
+
+        // Tailwind md breakpoint = 768px
+        function isPaintEnabled() { return window.innerWidth >= 768; }
+
+        function setTool(tool) {
+            activeTool = tool;
+            const isActive = (tool === 'eraser' || tool === 'ink');
+
+            eraseCanvas.style.pointerEvents = isActive ? 'auto' : 'none';
+            eraseCanvas.style.cursor = isActive ? 'crosshair' : 'default';
+
+            // Show/hide the custom circle
+            if (isActive) {
+                follower.classList.remove('hidden');
+            }
+            if (tool === 'ink') {
+                follower.classList.add('hidden');
+            }
+        }
+
+
+        eraseBtn?.addEventListener('click', () => {
+            setTool(activeTool === 'eraser' ? 'none' : 'eraser');
+            if (eraseBtn) eraseBtn.style.filter = activeTool === 'eraser' ? 'drop-shadow(0 0 6px white)' : '';
+            if (inkBtn) inkBtn.style.filter = '';
+        });
+
+        inkBtn?.addEventListener('click', () => {
+            setTool(activeTool === 'ink' ? 'none' : 'ink');
+            if (inkBtn)   inkBtn.style.filter   = 'drop-shadow(0 0 6px white)';
+            if (eraseBtn) eraseBtn.style.filter = '';
+        });
+
+        // -- Paint stroke ------------------------------------------------------
+        function paintAt(x, y, fromX, fromY) {
+            drawingCtx.globalCompositeOperation = 'source-over'; // Standard drawing
+            drawingCtx.beginPath();
+            drawingCtx.moveTo(fromX, fromY);
+            drawingCtx.lineTo(x, y);
+            drawingCtx.lineWidth = 2; // Adjust for "Ink" thickness
+            drawingCtx.strokeStyle = '#541e20'; // Dark ink color
+            drawingCtx.lineCap = 'round';
+            drawingCtx.stroke();
+        }
+
+        // -- Erase stroke ------------------------------------------------------
+        function isOverWebm(x, y) {
+            const W = eraseCanvas.width;
+            const H = eraseCanvas.height;
+            const oW = W * 0.52;
+            const oH = oW * (overlayVideo.videoHeight / overlayVideo.videoWidth);
+            const oX = W * 0.246;
+            const oY = H - H * 0.171 - oH;
+            // Only trigger on the center third (where the pony is)
+            const thirdW = oW / 3;
+            const centerX1 = oX + thirdW;
+            const centerX2 = oX + thirdW * 2;
+            return x >= centerX1 && x <= centerX2 && y >= oY && y <= oY + oH;
+        }
+
+        let hasErasedWebm = false;
+        function eraseAt(x, y, fromX, fromY) {
+            // ACHIEVEMENT: Erase part of the webm for the first time
+            if (!hasErasedWebm && isOverWebm(x, y)) {
+                hasErasedWebm = true;
+                if (window.steamAchievements && !window.steamAchievements.isUnlocked('scrapbook_eraser')) {
+                    window.steamAchievements.unlock('mare_erasure');
+                }
+            }
+            // 1. Erase from the DRAWING canvas directly
+            drawingCtx.globalCompositeOperation = 'destination-out';
+            drawingCtx.beginPath();
+            drawingCtx.moveTo(fromX, fromY);
+            drawingCtx.lineTo(x, y);
+            drawingCtx.lineWidth = BRUSH_RADIUS * 2;
+            drawingCtx.stroke();
+
+            // 2. Erase from the VIDEO mask (this hides the book/video)
+            eraseCtx.globalCompositeOperation = 'destination-out';
+            eraseCtx.beginPath();
+            eraseCtx.moveTo(fromX, fromY);
+            eraseCtx.lineTo(x, y);
+            eraseCtx.lineWidth   = BRUSH_RADIUS * 2;
+            eraseCtx.lineCap = 'round';
+            eraseCtx.lineJoin = 'round';
+            eraseCtx.stroke();
+        }
+        function canvasPos(e) {
+            const rect = eraseCanvas.getBoundingClientRect();
+            const src  = e.touches ? (e.touches[0] || e.changedTouches[0]) : e;
+            return [src.clientX - rect.left, src.clientY - rect.top];
+        }
+
+        // --- Desktop Mouse Listeners ---
+        eraseCanvas.addEventListener('mousedown', (e) => {
+            if (activeTool === 'none' || !isPaintEnabled()) return;
+            isDrawing = true;
+            [lastX, lastY] = canvasPos(e);
+        });
+
+        eraseCanvas.addEventListener('mousemove', (e) => {
+            if (!isDrawing || activeTool === 'none' || !isPaintEnabled()) return;
+            const [x, y] = canvasPos(e);
+
+            // Branch logic based on the active tool
+            if (activeTool === 'eraser') {
+                eraseAt(x, y, lastX, lastY);
+            } else if (activeTool === 'ink') {
+                paintAt(x, y, lastX, lastY);
+            }
+
+            [lastX, lastY] = [x, y];
+        });
+
+        // --- Mobile Touch Listeners ---
+        eraseCanvas.addEventListener('touchstart', (e) => {
+            if (activeTool === 'none' || !isPaintEnabled()) return;
+            e.preventDefault();
+            isDrawing = true;
+            [lastX, lastY] = canvasPos(e);
+        }, { passive: false });
+
+        eraseCanvas.addEventListener('touchmove', (e) => {
+            if (!isDrawing || activeTool === 'none' || !isPaintEnabled()) return;
+            e.preventDefault();
+            const [x, y] = canvasPos(e);
+
+            if (activeTool === 'eraser') {
+                eraseAt(x, y, lastX, lastY);
+            } else if (activeTool === 'ink') {
+                paintAt(x, y, lastX, lastY);
+            }
+
+            [lastX, lastY] = [x, y];
+        }, { passive: false });
+
+        // Global stop
+        window.addEventListener('mouseup', () => { isDrawing = false; });
+        eraseCanvas.addEventListener('touchend', () => { isDrawing = false; });
+
+        window.addEventListener('mousemove', (e) => {
+            if (activeTool !== 'none') {
+                follower.style.left = e.clientX + 'px';
+                follower.style.top = e.clientY + 'px';
+            }
+        });
+
+        // -- Init: load base image + video, then show canvas -------------------
+        const vid = document.createElement('video');
+        vid.src       = overlayVideoSrc;
+        vid.loop      = true;
+        vid.muted     = true;
+        vid.playsInline = true;
+
+        const imgReady = loadImage(baseImgSrc);
+        const vidReady = new Promise((resolve, reject) => {
+            vid.addEventListener('canplay', resolve, { once: true });
+            vid.addEventListener('error',   reject,  { once: true });
+            vid.load();
+        });
+
+        Promise.all([imgReady, vidReady])
+            .then(([b]) => {
+                baseImg      = b;
+                overlayVideo = vid;
+                //console.log("MARE MARE MARE")
+                vid.play();
+                frontDiv.style.display = 'none';
+                videoCanvas.classList.remove('hidden');
+                eraseCanvas.classList.remove('hidden');
+                drawingCanvas.classList.remove('hidden');
+
+                resizeCanvas();
+                startLoop();
+                const ro = new ResizeObserver(resizeCanvas);
+                ro.observe(eraseCanvas);
+            })
+            .catch(err => console.error('[front-canvas] load failed:', err));
+    });
+</script>
+
+<style is:inline set:html={`
+    ${Array.from({ length: pageCount }, (_, i) => `#page${i + 1}-wrap`).join(', ')} { display: none; }
+    ${Array.from({ length: pageCount }, (_, i) => `
+    #page${i + 1}:checked ~ div #page${i + 1}-wrap { display: contents; }
+`).join('')}`} />

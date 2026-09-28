@@ -1,0 +1,106 @@
+---
+import { Image, getImage } from 'astro:assets';
+import { Icon } from 'astro-icon/components';
+import type { NavAnchor } from '@data/NavAnchor';
+
+import ScrollBottom from '@assets/COC/ScrollBottomVignette.png';
+import ScrollCenter_RAW from '@assets/COC/ScrollCenter.png';
+import Scrolltop from '@assets/COC/Scrolltop.png';
+
+const scrollWidth = 1024;
+const ScrollCenter = await getImage({ src:ScrollCenter_RAW, format:"avif", width: scrollWidth });
+
+
+import woodRaw from "@assets/bg/wood.png";
+const wood = await getImage({ src: woodRaw, format:"png", height:2048});
+
+interface Props {
+    navigation?: NavAnchor[];
+    hasOpacitySwitch?: boolean;
+}
+const {navigation, hasOpacitySwitch} = Astro.props
+
+const pathname = Astro.url.pathname;
+---
+    {navigation && (
+    <div id="nav-desktop" class="lg:block hidden">
+        <input type="checkbox" name="navigation" id="navigation-toggle" class="hidden"/>
+        <label for="navigation-toggle" aria-label="Document Navigation" tabindex="0" role="button"   id="navigation-toggle-button" class="jsOnly fixed bottom-1/2 right-0 bg-black/50 hover:bg-black w-14 h-14 m-2 rounded-md z-50 transition-all cursor-pointer flex items-center justify-center" aria-label="See the navigation">
+            <Icon name="mdi:navigation-variant" class="relative text-white text-3xl" />
+        </label>
+        <div id="coc-nav" class="transition-all text-lg text-white fixed top-1/2 right-0 bg-black/50 p-2 rounded-xl m-2 z-50">
+            {navigation.map((policy) => (
+            <li class="ml-4 content ">
+                <a href={`${pathname}#${policy.anchor}`} class="hover:text-neutral-200 hover:underline">
+                    {policy.title}
+                </a>
+            </li>
+            ))}
+        </div>
+    </div>
+    <div id="nav-mobile" class="lg:hidden block">
+        <input type="checkbox" name="navigation" id="navigation-toggle-mobile" class="hidden"/>
+        <label for="navigation-toggle-mobile" aria-label="Document Navigation" tabindex="0" role="button" id="navigation-toggle-button-mobile" class="jsOnly -rotate-90 fixed bottom-1/2 right-0 bg-black/50 hover:bg-black w-14 h-14 m-2 rounded-md z-50 transition-all cursor-pointer flex items-center justify-center" aria-label="See the navigation">
+            <Icon name="mdi:navigation-variant" class="relative text-white text-3xl" />
+        </label>
+        <div id="coc-nav-mobile" class="transition-all text-lg text-white fixed top-1/2 -right-full bg-black/50 p-2 rounded-xl m-2 z-50">
+            {navigation.map((policy) => (
+            <li class="ml-4 content ">
+                <a href={`${pathname}#${policy.anchor}`} class="hover:text-neutral-200 hover:underline">
+                {policy.title}
+                </a>
+            </li>
+            ))}
+        </div>
+    </div>
+    )}
+
+    {
+        (hasOpacitySwitch && <input type="checkbox" id="checkbox_opacity" class="peer hidden"/>)
+    }
+
+    <div class={`relative z-10 ${hasOpacitySwitch && "peer-checked:opacity-10"} transition-opacity`} style={`--img-width: ${scrollWidth}px`}>
+        <div id="board" class="relative h-full overflow-hidden drop-shadow-xl/100">
+                <div id="top" class="relative flex flex-wrap justify-center pointer-events-none select-none mt-32">
+                    <Image src={Scrolltop} alt="" format="avif" width={scrollWidth} class=`block mx-auto scrollMinWidth` style=``/>
+                </div>
+            {/* change height to Auto if using height affecting divs i.e. texts or relative images*/}
+            <div id="cen" class="relative max-w-full mx-auto bg-top flex flex-wrap items-center justify-center h-auto pb-20 scrollWidth" style={`background-image: url(${ScrollCenter.src});`}>
+                <div id="corkboard-container" class="lora-500 flex flex-col relative justify-center lg:w-[1000px] w-[720px] max-w-screen z-[1] p-10" style="grid-auto-flow: row dense;">
+                    <div class="lg:px-25 sm:px-5 px-0 text-black">
+                        <slot/>
+                    </div>
+                </div>
+            </div>
+            <div id="bot" class="relative flex flex-wrap justify-center pointer-events-none select-none z-[0] -mt-50 w-full ">
+                <div class="relative w-fit h-fit">
+                    <Image src={ScrollBottom} alt="" format="avif" width={scrollWidth} class=`block mx-auto scrollMinWidth` style=``/>
+                    {
+                        (hasOpacitySwitch && (<label for="checkbox_opacity" tabindex="0" role="button" aria-label="Scroll Opacity Switch" class="absolute bottom-[30%] right-[19%] h-[35%] w-[17%] z-10 rounded-full pointer-events-auto cursor-pointer"/>))
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+<style>
+    @reference "tailwindcss";
+    .scrollMinWidth {
+        @apply sm:min-w-[var(--img-width)] min-w-[640px] sm:w-[var(--img-width)] w-[640px];
+    }
+    .scrollWidth {
+        @apply sm:w-[var(--img-width)] w-[640px] sm:bg-size-[var(--img-width)_auto] bg-size-[640px_auto];
+    }
+
+    #navigation-toggle:checked ~ #coc-nav {
+        @apply -right-full;
+    }
+    #navigation-toggle:checked ~ #navigation-toggle-button {
+        @apply -rotate-90;
+    }
+    #navigation-toggle-mobile:checked ~ #coc-nav-mobile {
+        @apply right-0;
+    }
+    #navigation-toggle-mobile:checked ~ #navigation-toggle-button-mobile {
+        @apply rotate-0;
+    }
+</style>

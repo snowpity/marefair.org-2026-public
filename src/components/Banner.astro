@@ -1,0 +1,20 @@
+---
+export const AUCTRIA_SITE = "https://auction.marefair.org/";
+const isEnabled = true;
+---
+
+{
+    (isEnabled ?
+        (
+            <div id="banner" class="absolute top-0 left-0 w-screen min-h-10 h-fit bg-gradient-to-r from-red-950 via-red-800 to-red-950 z-50">
+                <a href={AUCTRIA_SITE} target="_blank" rel="noopener noreferrer"
+                    class="flex text-center items-center justify-center w-full min-h-10 h-full text-white rubik-800 text-xl md:hover:scale-101 transition-transform">
+                    CHARITY AUCTION TODAY! CLICK HERE TO SEE THE ITEMS!
+                </a>
+            </div>
+        ) :
+        (
+            ''
+        )
+    )
+}

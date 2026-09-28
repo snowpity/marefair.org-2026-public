@@ -1,0 +1,276 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+import BgParallaxComplex from '@components/BgParallaxComplex.astro';
+
+import bgtop from '@assets/venue/bg.png';
+import rosen from '@assets/venue/rosen.png';
+import ROK_BTM from '@assets/venue/ROK_BTM.png';
+import ROK_MID_RAW from '@assets/venue/ROK_MID.png';
+import ROK_TOP from '@assets/venue/ROK_TOP.png';
+
+import parking from '@assets/venue/parking.png';
+import key from '@assets/venue/key.png';
+
+const ROK_MID = await getImage({ src: ROK_MID_RAW, format:"avif" });
+
+const parallaxLayers = [
+    { offset: '-100%', imgSrc: bgtop, width: rosen.width, height: bgtop.height },
+    { offset: '0%', imgSrc: rosen, width: rosen.width },
+];
+
+---
+
+<Layout title="Venue | Mare Fair 2026">
+    <BgParallaxComplex parallaxLayers={parallaxLayers} imageHeight={rosen.height} sideVignette imageWidth={rosen.width}/>
+
+    <div class="">
+        <div id="board" class="relative h-full">
+
+            {/* change height to Auto if using height affecting divs i.e. texts or relative images*/}
+            <div id="cen" class="relative max-w-full mx-auto bg-top flex flex-wrap items-center justify-center px-0 h-auto" style={`margin-top:${ROK_TOP.height}px; background-image: url(${ROK_MID.src});width: ${ROK_MID_RAW.width}px;`}>
+
+                <Image src={ROK_TOP} alt="" format="avif" width={ROK_TOP.width} height={ROK_TOP.height} class=`absolute block mx-auto select-none pointer-events-none` style=`top:-${ROK_TOP.height}px; min-width: ${ROK_TOP.width}px`/>
+
+                <div id="corkboard-container" class="merriweather-sans-bold text-black text-xl text-shadow flex flex-col relative justify-center -mt-150 -mb-20 w-[900px] max-w-screen z-[1] md:p-20 p-5" style="grid-auto-flow: row dense;">
+                    <center> <h2 class="md:mt-0 mt-20 germania-one-regular"> YOUR QUEST AWAITS AT </h2> </center>
+                    <center> <h1 class="germania-one-regular"> Hilton Orlando Lake Buena Vista </h1> </center>
+                    <center> <h2 class="germania-one-regular"> 1751 Hotel Plaza Boulevard <br> Orlando, FL 32830 </h2> </center>
+                    <div class="text-2xl mb-10">
+                        Dear adventurers, quest hunters, and heroes alike: this <strong> magical </strong> stele shall assist your quest to locate the <strong> Mare Fair 2026 </strong> venue. <strong> But be wary, and heed to the cautions before planning your adventure! </strong>
+                    </div>
+                    <!-- INTERACTIVE MAP -->
+
+                    <center> <h2 class="germania-one-regular"> YOUR DESTINATION </h2> </center>
+                    <div id="mapdiv" class="relative w-full h-[32rem] group rounded-xl mb-10">
+                        <div id="map-wrapper" class="w-full h-full absolute overflow-hidden z-10 pointer-events-none select-none">
+                            <div id="shadow" class="w-full h-full " style="box-shadow: 0 0 1rem inset;"> </div>
+                        </div>
+                    </div>
+
+                    <center> <h2 class="germania-one-regular"> Guest Rooms </h2> </center>
+
+                    <div>Guest room rates are <strong> $119 per night </strong> for standard room (room with single king or double queen beds). </div>
+                    <ul>
+                        <li> Single king rooms can hold up to 3 people </li>
+                        <li> Double queen rooms can hold up to 4 people </li>
+                        <li> If there's three (3) occupants, there will be an additional $10 charge per night </li>
+                        <li> If there's four (4) occupants, there will be an additional $20 charge per night </li>
+                    </ul>
+                    <Image src={key} height={key.height} alt="Ponies are exchanging bits for room key" class="w-full"/>
+                    <center> <h2 class="germania-one-regular mt-10"> Resort Fee </h2> </center>
+
+                    <div> There is an optional $25 per night resort fee that will be posted to your guest room to cover the following: </div>
+
+                    <ul>
+                        <li> Guest room high speed wireless Internet access </li>
+                        <li> Shuttle transportation to/from Disney World Theme Parks </li>
+                        <li> DVDNow movie rentals </li>
+                        <li> Two (2) 16.9 oz bottles of water (Nestlé Pure Life) daily, redeemable at Mainstreet Market </li>
+                        <li> $5 discount on one attraction ticket sold at concierge desk (not combinable) </li>
+                        <li> 50% off golf rentals at Disney golf courses </li>
+                    </ul>
+
+                    <center> <h2 class="germania-one-regular mt-10"> Extra Fees </h2> </center>
+
+                    <ul>
+                        <li> Parking is $17.50 per day for hotel guests booked in our room block </li>
+                        <li> An Early Departure Fee of $119 per each night of your confirmed stay not actualized will be billed to your account if you check out early. This fee may be waived for medical or family emergencies at the discretion of the hotel </li>
+                    </ul>
+                    <Image src={parking} height={parking.height} alt="Ponies are parking their charriot" class="w-full"/>
+
+                    <center> <h2 class="germania-one-regular mt-10"> Tax Rate </h2> </center>
+
+                    <div> A tax rate of 12.5% will also be added to your bill.  This tax consists of the following components: </div>
+                    <ul>
+                        <li> Florida sales tax of 6% </li>
+                        <li> Orange County discretionary sales surtax of 0.5% </li>
+                        <li> Orange County Transient rental tax of 6% </li>
+                    </ul>
+
+                    <center> <h2 class="germania-one-regular mt-10"> Check-in </h2> </center>
+
+                    <ul>
+                        <li> Check-in after 4pm, check-out by 11am </li>
+                        <li> All guests arriving before 4pm will be accommodated as rooms become available </li>
+                        <li> The Bell Captain's desk can arrange to check your baggage if you arrive early when rooms are unavailable or if you wish to attend functions on your departure day </li>
+                    </ul>
+
+                    <center> <h2 class="germania-one-regular mt-10"> Payment </h2> </center>
+
+                    <ul>
+                        <li> To confirm a room within our room block, it must be secured with a valid credit card along with a first night's deposit which may be charged at time of reservation </li>
+                        <li> If you cancel more than five days prior to arrival, a refund of the first night's deposit will be made to your credit card </li>
+                        <li> If you cancel less than five days prior to arrival, the first night's deposit will not be refundable </li>
+                    </ul>
+
+                    <center> <h2 class="germania-one-regular mt-10"> Firearms </h2> </center>
+                    <p>Firearms are not allowed inside the hotel, either in public areas or guest rooms.</p>
+
+
+					<center class="mt-10"> <h2 class="germania-one-regular"> Exclusive Disney Benefits </h2> </center>
+					<p>
+						Since our host hotel is located directly on Disney property, Mare Fair attendees can take advantage of special perks to enhance their stay. We are excited to offer exclusive discounts on theme park tickets to make your trip even more maregical.
+					</p>
+					{/* DO NOT MODIFY THE TEXT BETWEEN THESE COMMENTS ON PAIN OF DISNEY LAWYERS */}
+					{/* vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv */}
+					<p class="mt-4">
+						To purchase specially priced <i>Walt Disney World</i>® Meeting/Convention Theme Park tickets, <a href="//disneyevent.com/marefair2026" style="color: rgb(5,99,193);" target="_blank">CLICK HERE</a> or call <a href="tel:+1-407-566-5600">407-566-5600</a> and provide group code G10138560.
+					</p>
+					<p class="mt-4">
+						Whether it’s your first visit or your 100th, we recommend reviewing the Walt Disney World® Resort <a href="//disneyworld.disney.go.com/experience-updates/" style="color: rgb(5,99,193);" target="_blank">Experience Updates</a>.
+					</p>
+					{/* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ */}
+					{/* DO NOT MODIFY THE TEXT BETWEEN THESE COMMENTS ON PAIN OF DISNEY LAWYERS */}
+
+
+
+
+                    <center> <h1 class="germania-one-regular mt-10"> BOOK YOUR RESERVATION </h1> </center>
+                    <center>
+                        <p class="lg:text-xl mb-10 sm:w-4/5 lg:w-[30rem] text-center">You can make a reservation by using the link below,
+                            or by calling the toll-free number <strong style="white-space: nowrap;"><a href="tel:+1-800-782-4414"> (800) 782-4414 </a></strong> and mentioning <strong> the group code SNO </strong>.
+                        </p>
+                    </center>
+                    <div class="rounded-lg text-3xl w-fit h-fit mx-auto bg-gradient-to-b from-[#222222] to-[#555555] transition-all duration-300 inset-shadow-[0px_0px_1rem_rgba(0,0,0,1)] opacity-70 hover:opacity-90">
+                        <a class="block text-white py-5 px-15" target="_blank" href="//book.passkey.com/e/51185221">BOOK NOW</a>
+                    </div>
+                </div>
+            </div>
+            <div id="bot" class="relative flex flex-wrap justify-center pointer-events-none z-[0] -mt-60 w-full ">
+                <Image src={ROK_BTM} alt="" format="avif" width={ROK_BTM.width} height={ROK_BTM.height} class=`block mx-auto select-none pointer-events-none` style=`min-width: ${ROK_BTM.width}px`/>
+            </div>
+        </div>
+    </div>
+
+</Layout>
+
+
+<script>
+    import maplibregl from 'maplibre-gl';
+    import 'maplibre-gl/dist/maplibre-gl.css';
+
+    let map: maplibregl.Map | null = null;
+
+    // Run the map initialization only after DOM content is loaded
+    document.addEventListener('astro:page-load', () => {
+        const mapContainer = document.getElementById('mapdiv') as HTMLElement;
+        if (!mapContainer) {
+            return;
+        }
+
+        map = new maplibregl.Map({
+            container: 'mapdiv',
+            // style: `/api/map-style.json`, // Our free API exhausted so we use OSM.
+            style: {
+                version: 8,
+                sources: {
+                    osm: {
+                        type: 'raster',
+                        tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                        tileSize: 256,
+                        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    }
+                },
+                layers: [
+                    {
+                        id: 'osm',
+                        type: 'raster',
+                        source: 'osm',
+                        minzoom: 0,
+                        maxzoom: 19
+                    }
+                ]
+            },
+            center: [-81.510709, 28.372380],
+            zoom: 13,
+        });
+
+        /********* Marker shits below *********/
+
+        const MareFairMarker = "/map-markers/mf.png";
+        const AirportMarker = "/map-markers/airport.png";
+        const CinemaMarker = "/map-markers/cinema.png";
+        const WyndhamMarker = "/map-markers/mf-gray.png";
+        const UnknownMarker = "/map-markers/unknown.png";
+
+        const coordinates = [
+            { name: 'Wyndham', coords: [-81.467845, 28.448110], marker: WyndhamMarker },
+            { name: 'Orlando International Airport', coords: [-81.31479, 28.41405], marker: AirportMarker  },
+            { name: 'Sanford International Airport', coords: [-81.23596, 28.77552], marker: AirportMarker  },
+            { name: 'Orlando Executive Airport', coords: [-81.33284, 28.54617], marker: AirportMarker  },
+            { name: 'Epic Theatres', coords: [-81.3049543, 28.4638764], marker: CinemaMarker  },
+            { name: 'Equestria', coords: [28.3431793, -25.7594954], marker: UnknownMarker  },
+            { name: 'Brony', coords: [19.41388432104162, 52.13569114509416], marker: UnknownMarker  },
+            { name: 'Mare Fair sign at Hasbro HQ', coords: [-71.354136, 41.883016], marker: UnknownMarker  },
+            { name: 'Marefair, UK', coords: [-0.902667635636463, 52.23683818114854], marker: UnknownMarker  },
+            { name: 'Marefair Lane, SC', coords: [-82.30024303170644, 34.70498889246434], marker: UnknownMarker  },
+            { name: 'Mare Island', coords: [167.98698484298214, -21.51571900295062], marker: UnknownMarker },
+            { name: 'Rosen Centre', coords: [-81.464213, 28.423665], marker: WyndhamMarker },
+            { name: 'Marriott Orlando Airport Lakeside', coords: [-81.305697, 28.456246], marker: WyndhamMarker },
+            { name: 'Hilton Orlando Lake Buena Vista', coords: [-81.510709, 28.372380], marker: MareFairMarker },
+            { name: 'Medieval Times', coords: [-81.4626396, 28.304435], marker: CinemaMarker },
+        ];
+
+        // Add markers to the map
+        coordinates.forEach(({ name, coords, marker }) => {
+            const el = document.createElement('div');
+            el.className = 'marker';
+            el.style.backgroundImage = `url('${marker}')`;
+            el.style.width = '40px';
+            el.style.height = '40px';
+            el.style.backgroundSize = 'contain';
+            el.style.backgroundRepeat = 'no-repeat';
+            el.style.cursor = 'pointer';
+            el.tabIndex = -1;
+
+            const popup = new maplibregl.Popup({ offset: 25 }).setText(name);
+
+            // Add click event listener for Equestria marker
+            if (name === 'Equestria') {
+                el.addEventListener('click', () => {
+                    // ACHIEVEMENT: Discover the Portal to Equestria
+                    if (window.steamAchievements && !window.steamAchievements.isUnlocked('portal_discovery')) {
+                        window.steamAchievements.unlock('portal_discovery');
+                    }
+                });
+            }
+
+            new maplibregl.Marker({ element: el })
+                .setLngLat(coords as [number, number])
+                .setPopup(popup)
+                .addTo(map!);
+        });
+    });
+
+    // Cleanup map before navigating away
+    document.addEventListener('astro:before-preparation', () => {
+        if (map) {
+            map.remove(); // Properly cleanup MapLibre GL instance
+            map = null;
+        }
+    });
+</script>
+
+<style>
+    @reference "tailwindcss";
+    .imgWidth{
+        width: var(--img-width);
+        max-width: var(--img-width);
+        min-width: var(--img-width);
+    }
+
+    ul {
+        @apply list-disc list-inside;
+    }
+    h1 {
+        @apply md:text-8xl text-7xl mb-10 ;
+    }
+    h2 {
+        @apply text-6xl mb-10;
+    }
+
+    .center-horizontally{
+        @apply left-1/2 -translate-x-1/2;
+    }
+</style>

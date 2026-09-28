@@ -1,0 +1,25 @@
+---
+import { Image, getImage } from 'astro:assets';
+import TilingScroll from '@components/TilingScroll.astro';
+import BgTileable from '@components/BgTileable.astro';
+import Layout from '@layouts/Layout.astro';
+
+import woodRaw from "@assets/bg/wood.png";
+const wood = await getImage({ src: woodRaw, format:"png", height:2048});
+
+import velvetRaw from "@assets/bg/velvet.png";
+const velvet = await getImage({ src: velvetRaw, format:"avif", height:1024});
+---
+<Layout title="404 | Mare Fair 2026">
+    <BgTileable imgSrc={wood.src} vignette stain/>
+    <div class="w-screen h-screen flex justify-center items-center">
+        <div class="relative sm:w-1/2 w-9/10 h-1/2 bg-white rounded-xl flex justify-center items-center overflow-hidden shadow-[0_0_20px_rgb(0,0,0)] ">
+            <div class="absolute inset-0 rounded-xl opacity-30" style={`background-image: url(${velvet.src}); background-size: cover; background-position: center;`}></div>
+            <center class="relative z-10 lora-500">
+                <h1 class="text-9xl mb-10 germania-one-regular"> 404 </h1>
+                <p class="text-2xl lg:block hidden"> IPSE·SE·NIHIL·SCIRE·ID·UNIM·SCIAT </p>
+                <p class="text-2xl lg:hidden block"> IPSE·SE·NIHIL·SCIRE <br/>ID·UNIM·SCIAT </p>
+            </center>
+        </div>
+    </div>
+</Layout>

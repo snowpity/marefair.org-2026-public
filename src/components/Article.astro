@@ -1,0 +1,63 @@
+---
+import { Image, getImage } from "astro:assets";
+import type { NewsArticle } from '@data/NewsArticle';
+
+// Import article images
+
+import parchmentAtlas from "@assets/news/parchment_png_list.png";
+const height=500;
+const ratio = 0.7;
+const atlas = await getImage({ src: parchmentAtlas, format: "avif", height: height });
+
+const parchmentCount = 4;
+
+interface Props {
+    article: NewsArticle;
+    index?: number;
+}
+
+const { article } = Astro.props;
+
+// Function to generate a random article image based on the presence of a hero image
+function getRandomParchment(): number {
+    return Math.floor(Math.random() * parchmentCount);
+}
+---
+
+<div class=`relative left-1/2 -translate-x-1/2 atlas max-w-screen`
+    style={`--atlas-count: ${parchmentCount}; --image-height: ${height}px; --image-width: ${height * ratio}px`}>
+    <!-- Background Asset -->
+    <div class="atlas absolute" style={`background-image: url(${atlas.src}); background-position: -${getRandomParchment() * 150 + 25}%;`}></div>
+
+
+
+    <!-- Content Layer -->
+    <div class="relative flex flex-col h-full p-[12%]">
+        <!-- Title -->
+        <h2 class="text-lg font-bold leading-tight mb[1%]1 mt-[5%] announcement-padding">{article.title}</h2>
+
+        <!-- Date -->
+        <p class="text-sm text-gray-600 mb-[5%] announcement-padding">{new Date(article.createdAt).toLocaleDateString()}</p>
+
+        <!-- Preview Text -->
+        <p class="text-sm text-gray-800 mt-0 line-clamp-3 announcement-padding pb-[10%]">
+            {article.previewText || 'No description available.'}
+        </p>
+
+        {article.heroImage && (
+            <!-- Hero Image -->
+            <img src={article.heroImage}
+        alt={article.title}
+        class="w-full aspect-[3/2] object-cover mx-auto rounded-lg"/>
+        )}
+    </div>
+</div>
+
+<style>
+    .atlas {
+        @apply aspect-[7/10];
+        width: var(--image-width);
+        height: var(--image-height);
+        background-size: calc(var(--atlas-count) * 150%); /* 150% instead of 100% because there's some blank spaces */
+    }
+</style>

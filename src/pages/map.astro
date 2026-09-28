@@ -1,0 +1,912 @@
+---
+import { Image, getImage } from "astro:assets";
+import Layout from "@layouts/Layout.astro";
+
+import {rooms, buildRoomMapping} from "@components/VenueMap.astro"
+import { Icon } from "astro-icon/components";
+import { combineAssignments } from '@components/ScheduleTable.astro';
+
+
+import MapMain from "@assets/map/map.png";
+import Mapbg from "@assets/map/mapbg.png";
+
+import BgTileable from '@components/BgTileable.astro';
+import woodRaw from "@assets/bg/wood.png";
+const wood = await getImage({ src: woodRaw, format:"png", height:2048});
+
+import paperRaw from "@assets/misc/textured-paper.png"
+const paper = await getImage({ src: paperRaw, format:"avif", width: 500});
+
+import Path1 from "@assets/map/Path/path1.svg?raw";
+import Path2 from "@assets/map/Path/path2.svg?raw";
+import Path3 from "@assets/map/Path/path3.svg?raw";
+import Path4 from "@assets/map/Path/path4.svg?raw";
+import Path5 from "@assets/map/Path/path5.svg?raw";
+import footprint from "@assets/map/Path/left footprint.png"
+
+import FFTag from "@assets/map/Path/fair_flyer_name.png";
+import FRTag from "@assets/map/Path/funraiser_name.png";
+import MATag from "@assets/map/Path/matinee_name.png";
+import MITag from "@assets/map/Path/mimosa_name.png";
+import SOTag from "@assets/map/Path/soiree_name.png";
+
+import MotionPathWalker from "@components/MotionPathWalker.astro";
+
+const SCHEDULE_API = import.meta.env.SCHEDULE_API + "?c=panel";
+const response = await fetch(SCHEDULE_API);
+const scheduleData = await response.json();
+//import scheduleData from '@data/schedules/panel.json';
+
+const MUSICIAN_API = import.meta.env.SCHEDULE_API + "?c=musician";
+const responseMusician = await fetch(MUSICIAN_API);
+const musicianData = await responseMusician.json();
+//import musicianData from '@data/schedules/musician.json';
+
+const allAssignments = combineAssignments(scheduleData.assignments, musicianData.assignments);
+
+// Map every API spelling of a room name ("Name (Desc)", known aliases, etc.)
+// to the canonical `room` field from VenueMap.astro's rooms array.
+const roomMapping = buildRoomMapping(rooms);
+
+// Group schedule data by room
+const panelsByRoom = allAssignments.reduce((acc: any, panel: any) => { // TODO: LOOK INTO SETTING THE RIGHT TYPES FOR THESE
+    const rawRoomId = panel["room-or-table-id"];
+    const roomId = roomMapping[rawRoomId] || rawRoomId;
+    if (!acc[roomId]) {
+        acc[roomId] = [];
+    }
+    acc[roomId].push(panel);
+    return acc;
+}, {}) || {};
+
+// Helper function to get rating class
+function getRatingClass(rating: string) {
+    if (rating?.toLowerCase().includes('safe')) return 'bg-green-100 border-green-300';
+    if (rating?.toLowerCase().includes('questionable')) return 'bg-cyan-100 border-cyan-300';
+    if (rating?.toLowerCase().includes('suggestive')) return 'bg-amber-100 border-amber-300';
+    if (rating?.toLowerCase().includes('explicit')) return 'bg-red-100 border-red-300';
+    if (rating?.toLowerCase().includes('NOT A PANEL')) return 'bg-white';
+    return 'bg-gray-100 border-gray-300';
+}
+
+// Helper function to format time
+function formatTime(timeString: string) {
+    const date = new Date(timeString);
+    return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+}
+
+// Helper function to get day name from date string
+function getDayName(timeString: string) {
+    const date = new Date(timeString);
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+}
+
+// Helper function to group panels by day
+function groupPanelsByDay(panels: any[]) {
+    return panels.reduce((acc: any, panel: any) => {
+        const dayName = getDayName(panel["start-time"]);
+        if (!acc[dayName]) {
+            acc[dayName] = [];
+        }
+        acc[dayName].push(panel);
+        return acc;
+    }, {});
+}
+
+// Sort panels by start time within each day
+function sortPanelsByTime(panels: any[]) {
+    return panels.sort((a: any, b: any) => {
+        return new Date(a["start-time"]).getTime() - new Date(b["start-time"]).getTime();
+    });
+}
+
+// Originally I was planning on optimizing it down to rendered size of 2048, but since this is full of easter egg, I'm making it draw in full, but scaled to this width
+const mapWidth = 2048;
+const mapWidthSm = 1024;
+const mapAspect = MapMain.width/MapMain.height;
+const tagSize = 100;
+---
+
+<Layout title="Map | Mare Fair 2026">
+    <BgTileable imgSrc={wood.src} vignette stain/>
+    <input type="radio" name="modal-toggle" id="default-modal-toggle" class="hidden" checked />
+
+    <!-- Room Panel Modals -->
+    {rooms.map((room) => {
+        const roomPanels = panelsByRoom[room.room] || [];
+        const panelsByDay = groupPanelsByDay(roomPanels);
+        const sortedDays = Object.keys(panelsByDay).sort((a, b) => {
+            // Sort days chronologically
+            const dateA = new Date(panelsByDay[a][0]["start-time"]);
+            const dateB = new Date(panelsByDay[b][0]["start-time"]);
+            return dateA.getTime() - dateB.getTime();
+        });
+
+        return (
+            <div>
+                <input type="radio" name="modal-toggle" id={`${room.room.replace(/\s+/g, '-')}-toggle`} class="hidden"/>
+                <div id={`${room.room.replace(/\s+/g, '-')}-modal`} class="fixed w-screen h-screen z-30 opacity-0 pointer-events-none bg-black/60 transition-[opacity,backdrop-filter] duration-200">
+                    <label for="default-modal-toggle" class="absolute inset-0 w-full h-full cursor-pointer"/>
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white w-[50rem] max-w-[95vw] max-h-[80vh] rounded-xl p-6 shadow-xl shadow-black/30 overflow-y-auto">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold">{room.room}</h2>
+                            <label for="default-modal-toggle" class="text-gray-500 hover:text-gray-700 cursor-pointer text-2xl font-bold">&times;</label>
+                        </div>
+
+                        {room.desc && (
+                            <p class="text-gray-600 mb-4">{room.desc}</p>
+                        )}
+
+                        {/* Rating Legend */}
+                        {roomPanels.length > 0 && (
+                        <div class="flex justify-center flex-wrap max-w-xs mx-auto sm:max-w-none sm:flex-row sm:space-x-4 gap-2 sm:gap-0">
+                            <div class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                                <div class="bg-green-300 w-4 h-4"></div>
+                                <div>Safe</div>
+                            </div>
+                            <div class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                                <div class="bg-cyan-300 w-4 h-4"></div>
+                                <div>Suggestive</div>
+                            </div>
+                            <div class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                                <div class="bg-amber-300 w-4 h-4"></div>
+                                <div>Questionable</div>
+                            </div>
+                            <div class="items-center flex space-x-2 w-[calc(50%-0.5rem)] sm:w-auto">
+                                <div class="bg-red-300 w-4 h-4"></div>
+                                <div>Explicit</div>
+                            </div>
+                        </div>
+                        )}
+
+                        {roomPanels.length > 0 ? (
+                            <div class="space-y-6">
+                                {sortedDays.map((dayName) => (
+                                    <div class="space-y-4">
+                                        <h4 class="text-lg font-semibold text-blue-600 border-b border-blue-200 pb-1">
+                                            {dayName}:
+                                        </h4>
+                                        <div class="space-y-3 ml-4">
+                                            {sortPanelsByTime(panelsByDay[dayName]).map((panel: any) => {
+                                                const rating = panel.questions?.find((q: any) => q.title === "Rate your panel")?.answer || "Not rated";
+                                                const ratingClass = getRatingClass(rating);
+                                                const description = panel.questions?.find((q: any) => q.title.toLowerCase().includes("description"))?.answer || (rating != "NOT A PANEL" ? "No description available" : '');
+
+                                                return (
+                                                    <div class={`border rounded-lg p-4 ${ratingClass}`}>
+                                                        <div class="flex justify-between items-start mb-2">
+                                                            <h5 class="font-semibold text-lg">{panel["application-name"]}</h5>
+                                                            <span class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                                                {formatTime(panel["start-time"])} - {formatTime(panel["end-time"])}
+                                                            </span>
+                                                        </div>
+
+                                                        { rating != "NOT A PANEL" ?(
+                                                            <p class="text-sm text-gray-600 mb-2">by {panel["business-name"]}</p>
+                                                            ):''
+                                                        }
+
+                                                        <p class="text-gray-800 mb-2">{description}</p>
+
+                                                        { rating != "NOT A PANEL" ?(
+                                                            <p class="text-xs text-gray-600">Rating: {rating}</p>
+                                                            ):''
+                                                        }
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p class="text-gray-500 italic">No panels scheduled for this room.</p>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    })}
+
+    <div id="map" class="w-screen h-screen overflow-auto">
+        <div id="wrapper"class=" my-[5%] mb-[calc(25vh+5%)] rounded-xl flex flex-row">
+
+            <label for={`default-highlight`} class="absolute top-0 left-0 w-full h-full opacity-0 bg-opacity-0 cursor-grab active:cursor-grabbing"/> {/* The default label has to be on top so it wouldn't be affected by highlighting */}
+
+            <input type="radio" name="map-highlight" id="default-highlight" class="hidden" checked/> {/* For + label to work, it has to be right above it */}
+
+            {/* Large screens (sm and above): full 2048px map */}
+            <div id="map1" class="hidden sm:block mx-auto relative pointer-events-none w-fit">
+                <Image src={Mapbg} format="avif" alt="" class="max-w-none" style=`width:${mapWidth}px; aspect-ratio: ${mapAspect}`/>
+
+                {rooms.map((room) => (
+                <>
+                    <input type="radio" name="map-highlight" id={`${room.room.replace(/\s+/g, '')}-highlight`} class="hidden" />
+                    <label id={`${room.room.replace(/\s+/g, '')}-map`} for={`${room.room.replace(/\s+/g, '-')}-toggle`} class="pointer-events-none highlight cursor-pointer absolute top-0 left-0 w-full h-full tooltip-trigger">
+                        <span class="room-svg absolute top-0 left-0 w-full h-full transition-all duration-300" set:html={room.svg?.replace(/<svg([^>]*)>/, (_, a) => {
+                            const wMatch = a.match(/width="([^"]*)"/);
+                            const hMatch = a.match(/height="([^"]*)"/);
+                            const vbMatch = a.match(/viewBox="[^"]*"/);
+                            const cleaned = a.replace(/\s*(width|height)="[^"]*"/g, '');
+                            const viewBox = vbMatch ? '' : ` viewBox="0 0 ${wMatch?.[1] ?? mapWidth} ${hMatch?.[1] ?? '100%'}"`;
+                            return `<svg width="${mapWidth}" height="100%"${viewBox}` + cleaned + '>';
+                        })} />
+                    </label>
+                </>
+                ))}
+
+                <Image src={MapMain} format="avif" alt="" class="absolute top-0 left-0 max-w-none pointer-events-none" style=`width:${mapWidth}px; aspect-ratio: ${mapAspect}`/>
+
+                <MotionPathWalker pathSvg={Path1} mapWidth={mapWidth} duration={200} nameTag={FFTag} nameTagSize={tagSize} />
+                <MotionPathWalker pathSvg={Path2} mapWidth={mapWidth} duration={100} nameTag={FRTag} nameTagSize={tagSize} />
+                <MotionPathWalker pathSvg={Path3} mapWidth={mapWidth} duration={230} nameTag={MATag} nameTagSize={tagSize} />
+                <MotionPathWalker pathSvg={Path4} mapWidth={mapWidth} duration={130} nameTag={MITag} nameTagSize={tagSize} />
+                <MotionPathWalker pathSvg={Path5} mapWidth={mapWidth} duration={150} nameTag={SOTag} nameTagSize={tagSize} />
+            </div>
+
+            {/* Small screens (below sm): half-size 1024px map */}
+            <div id="map1-sm" class="sm:hidden mx-auto relative pointer-events-none w-fit">
+                <Image src={Mapbg} format="avif" alt="" class="max-w-none" style=`width:${mapWidthSm}px; aspect-ratio: ${mapAspect}`/>
+
+                {rooms.map((room) => (
+                <>
+                    <label id={`${room.room.replace(/\s+/g, '')}-map-sm`} for={`${room.room.replace(/\s+/g, '-')}-toggle`} class="pointer-events-none highlight cursor-pointer absolute top-0 left-0 w-full h-full tooltip-trigger">
+                        <span class="room-svg absolute top-0 left-0 w-full h-full transition-all duration-300" set:html={room.svg?.replace(/<svg([^>]*)>/, (_, a) => {
+                            const wMatch = a.match(/width="([^"]*)"/);
+                            const hMatch = a.match(/height="([^"]*)"/);
+                            const vbMatch = a.match(/viewBox="[^"]*"/);
+                            const cleaned = a.replace(/\s*(width|height)="[^"]*"/g, '');
+                            const viewBox = vbMatch ? '' : ` viewBox="0 0 ${wMatch?.[1] ?? mapWidthSm} ${hMatch?.[1] ?? '100%'}"`;
+                            return `<svg width="${mapWidthSm}" height="100%"${viewBox}` + cleaned + '>';
+                        })} />
+                    </label>
+                </>
+                ))}
+
+                <Image src={MapMain} format="avif" alt="" class="absolute top-0 left-0 max-w-none pointer-events-none" style=`width:${mapWidthSm}px; aspect-ratio: ${mapAspect}`/>
+                {/*
+                <MotionPathWalker pathSvg={Path1} mapWidth={mapWidthSm} duration={200} nameTag={FFTag} nameTagSize={tagSize / 2} />
+                <MotionPathWalker pathSvg={Path2} mapWidth={mapWidthSm} duration={100} nameTag={FRTag} nameTagSize={tagSize / 2} />
+                <MotionPathWalker pathSvg={Path3} mapWidth={mapWidthSm} duration={230} nameTag={MATag} nameTagSize={tagSize / 2} />
+                <MotionPathWalker pathSvg={Path4} mapWidth={mapWidthSm} duration={130} nameTag={MITag} nameTagSize={tagSize / 2} />
+                <MotionPathWalker pathSvg={Path5} mapWidth={mapWidthSm} duration={150} nameTag={SOTag} nameTagSize={tagSize / 2} />
+                */}
+            </div>
+        </div>
+        <input type="checkbox" id="roomlist-toggle" class="hidden"> </input>
+        <div id="room-list" style={`--paper-bg: url('${paper.src}')`} class="fixed bottom-6 left-1/2 -translate-x-1/2 paper xl:w-[60%] lg:w-[70%] w-[90%] transition-[width] max-h-[25vh] h-fit z-20">
+            <label for="roomlist-toggle" id="toggle-button" class="absolute -top-12 cursor-pointer left-1/2 -translate-x-1/2">
+                <Icon name="mdi:arrow-up-down-bold-outline" class="relative text-white text-4xl" />
+            </label>
+
+            <div class="bg-white rounded-xl shadow-[0_0_15px_5px] shadow-black/50 reddit-sans max-h-[25vh] overflow-y-auto">
+                <ol class="list-decimal list-inside p-[2%] px-[5%] md:columns-3 columns-2 gap-8">
+                    {rooms.map((room) => (
+                    <li class="break-inside-avoid text-lg">
+                        <label for={`${room.room.replace(/\s+/g, '')}-highlight`} class="highlight-trigger hover:underline cursor-pointer"> {room.room} </label>
+                        {room.desc ?
+                        (
+                            <div class="text-sm ml-10 text-zinc-800"> {room.desc} </div>
+                        ) : ""
+                        }
+                    </li>
+                    ))}
+                </ol>
+            </div>
+        </div>
+    </div>
+
+</Layout>
+
+<style is:global>
+    @reference "tailwindcss";
+    #footer-space {
+        display: none;
+    }
+
+    /* Only the painted SVG shapes are pointer-events targets */
+    .room-svg svg {
+        pointer-events: none;
+    }
+
+    .room-svg svg * {
+        pointer-events: visiblePainted;
+        cursor: pointer;
+        fill: rgba(30, 127, 255, 0);
+        transition: fill 0.2s;
+    }
+
+    .highlight:hover .room-svg svg * {
+        fill: rgba(30, 127, 255, 0.3);
+    }
+
+    input[type="radio"][name="map-highlight"]:checked + label .room-svg svg * {
+        fill: rgba(30, 127, 255, 0.3);
+        animation: highlight-pulse 1s ease-in-out infinite;
+    }
+
+    /* JS-driven version of the rule above for mobile mode. */
+    .room-highlight-active .room-svg svg * {
+        fill: rgba(30, 127, 255, 0.3);
+        animation: highlight-pulse 1s ease-in-out infinite;
+    }
+
+    @keyframes highlight-pulse {
+        0%   { fill: rgba(235, 221, 35, 0.3); }
+        50%  { fill: rgba(235, 221, 35, 0.5); }
+        100% { fill: rgba(235, 221, 35, 0.3); }
+    }
+</style>
+
+<style>
+    @reference "tailwindcss";
+
+    #roomlist-toggle:checked ~ #room-list {
+        @apply sm:translate-y-0 -translate-y-3;
+    }
+    #room-list { /* Default state, keeping it down here with the toggle controller for posterity */
+        @apply sm:translate-y-[25vh] translate-y-[30vh] transition-transform duration-300;
+    }
+
+    #roomlist-toggle:checked ~ #room-list #toggle-button {
+        @apply -top-[20%];
+    }
+    #toggle-button {
+        @apply sm:-top-[20%] -top-[50%] cursor-pointer hover:scale-125 pointer-events-auto;
+        /* Add transition for the top property */
+        transition: transform 0.3s ease, top 0.3s ease;
+    }
+
+    .switch-button{
+        @apply h-full object-cover bg-black/90 rounded-[24px] border-4 border-black p-2;
+    }
+    input[type="radio"][name="modal-toggle"]:checked + div {
+        @apply opacity-100 pointer-events-auto backdrop-blur-sm transition-[opacity,backdrop-filter] duration-200;
+    }
+
+
+
+    .paper {
+        background-image: var(--paper-bg);
+        filter: drop-shadow(0 5px 5px #000);
+    }
+
+    .tooltip {
+        @apply absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none
+        bg-gray-800/80 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10 opacity-0 transition-opacity;
+    }
+
+    .tooltip-trigger:hover .tooltip {
+        @apply opacity-100;
+    }
+
+    /* -webkit-touch-callout is only ever recognized by Safari/WebKit (all
+       iOS browsers included, since Apple requires them to use WebKit lmao),
+       so this @supports block never matches Chrome, Firefox, or Edge.
+       Fuck Apple BTW what a shit ass fucking company */
+    @supports (-webkit-touch-callout: none) {
+        #map {
+            touch-action: none;
+        }
+        #room-list {
+            touch-action: pan-y;
+        }
+    }
+</style>
+
+<script>
+    function initRoomListCentering() {
+        document.querySelectorAll<HTMLLabelElement>('.highlight-trigger').forEach((label) => {
+            label.addEventListener('click', () => {
+                const roomId = label.htmlFor.replace(/-highlight$/, '');
+
+                // Defer a frame so this runs after the radio's own checked-state update (and any layout it triggers),
+                // rather than racing it.
+                requestAnimationFrame(() => {
+                    (window as any).mapCenterOnRoom?.(roomId);
+                });
+            });
+        });
+    }
+
+    document.addEventListener('astro:page-load', () => {
+        initRoomListCentering();
+    });
+
+    if (document.readyState !== 'loading') {
+        initRoomListCentering();
+    }
+
+    // Keep both the desktop (-map) and mobile (-map-sm) labels for a room in
+    // sync with the highlight class, since only one of them can ever be a
+    // direct CSS sibling of the radio input (see .room-highlight-active in
+    // the stylesheet above for the full explanation).
+    function initHighlightSync() {
+        const radios = document.querySelectorAll('input[name="map-highlight"]');
+
+        radios.forEach(radio => {
+            radio.addEventListener('change', function(event) {
+                const target = event.currentTarget as HTMLInputElement;
+
+                document.querySelectorAll('.room-highlight-active').forEach(el => {
+                    el.classList.remove('room-highlight-active');
+                });
+
+                if (target.checked && target.id !== 'default-highlight') {
+                    const roomId = target.id.replace('-highlight', '');
+                    const desktopLabel = document.getElementById(`${roomId}-map`);
+                    const mobileLabel = document.getElementById(`${roomId}-map-sm`);
+
+                    if (desktopLabel) desktopLabel.classList.add('room-highlight-active');
+                    if (mobileLabel) mobileLabel.classList.add('room-highlight-active');
+                }
+            });
+        });
+    }
+
+    document.addEventListener('astro:page-load', () => {
+        initHighlightSync();
+    });
+
+    if (document.readyState !== 'loading') {
+        initHighlightSync();
+    }
+</script>
+
+<script>
+    function initMapPanZoom() {
+        const map = document.getElementById('map') as HTMLElement;
+        const wrapper = document.getElementById('wrapper') as HTMLElement;
+        if (!map || !wrapper) return;
+
+        map.style.overflow = 'hidden';
+
+        const MIN_ZOOM = 0.6;
+        const MAX_ZOOM = 4;
+        const ZOOM_SPEED = 0.0015; // higher = more sensitive per wheel "tick"
+        const DRAG_THRESHOLD = 5;  // px, below this is a click, above is a drag
+
+        let panX = 0;
+        let panY = 0;
+        let zoom = 1;
+
+        function applyTransform() {
+            wrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+        }
+
+        wrapper.style.transformOrigin = '0 0';
+        applyTransform();
+
+        // Wheel-to-zoom
+        map.addEventListener('wheel', (e: WheelEvent) => {
+            // Let the room-list panel scroll normally instead of zooming the map.
+            if ((e.target as HTMLElement).closest('#room-list')) return;
+
+            e.preventDefault();
+
+            const oldZoom = zoom;
+            const newZoom = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom * Math.exp(-e.deltaY * ZOOM_SPEED)));
+            if (newZoom === oldZoom) return;
+
+            const mapRect = map.getBoundingClientRect();
+            const cursorX = e.clientX - mapRect.left;
+            const cursorY = e.clientY - mapRect.top;
+
+            // Find the content point currently under the cursor
+            const contentX = (cursorX - panX) / oldZoom;
+            const contentY = (cursorY - panY) / oldZoom;
+
+            zoom = newZoom;
+            panX = cursorX - contentX * zoom;
+            panY = cursorY - contentY * zoom;
+            applyTransform();
+        }, { passive: false });
+
+        // Mouse drag-to-pan
+        let isDragging = false;
+        let startX = 0, startY = 0, startPanX = 0, startPanY = 0;
+        let hasMoved = false;
+
+        map.addEventListener('mousedown', (e: MouseEvent) => {
+            // Only activate on left mouse button; ignore clicks on interactive elements
+            if (e.button !== 0)
+                return;
+
+            hasMoved = false;
+            // Ignore drags starting inside the room-list, which needs its own scroll
+            if ((e.target as HTMLElement).closest('#room-list')) return;
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            startPanX = panX;
+            startPanY = panY;
+            map.style.cursor = 'grabbing';
+            map.style.userSelect = 'none';
+        });
+
+        document.addEventListener('mousemove', (e: MouseEvent) => {
+            if (!isDragging) return;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            if (!hasMoved && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
+                hasMoved = true;
+            }
+
+            if (hasMoved) {
+                panX = startPanX + dx;
+                panY = startPanY + dy;
+                applyTransform();
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!isDragging) return;
+            isDragging = false;
+            map.style.cursor = '';
+            map.style.userSelect = '';
+        });
+
+        // Suppress click on all children if a drag just happened,
+        // so room labels don't fire after a pan gesture.
+        map.addEventListener('click', (e: MouseEvent) => {
+            if (hasMoved) {
+                e.stopPropagation();
+                e.preventDefault();
+                hasMoved = false;
+            }
+        }, true); // capture phase so it runs before label/input handlers
+
+        // Middle-click "autoscroll"-style navigation
+        let autoPanActive = false;
+        let autoPanOriginX = 0, autoPanOriginY = 0;
+        let autoPanLastX = 0, autoPanLastY = 0;
+        let autoPanRafId: number | null = null;
+        let autoPanCursor = '';
+        let autoPanMarker: HTMLDivElement | null = null;
+
+        let middleDown = false;
+        let middleMoved = false;
+        let middleStartX = 0, middleStartY = 0;
+
+        const AUTO_PAN_DEADZONE = 8;    // px from origin before panning starts
+        const AUTO_PAN_RANGE = 300;     // px from origin to reach full speed
+        const AUTO_PAN_MAX_SPEED = 18;  // px panned per frame at full speed
+
+
+        function setAutoPanCursor(cursor: string) {
+            if (cursor === autoPanCursor) return;
+            autoPanCursor = cursor;
+            map.style.cursor = cursor;
+        }
+
+        // Small pinned marker at the click point - stays put while the real cursor moves
+        // around it, same "two cursors" look as native OS/browser autoscroll.
+        function createAutoPanMarker(x: number, y: number) {
+            const marker = document.createElement('div');
+            marker.innerHTML = `
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                    <circle cx="12" cy="12" r="10" fill="rgba(0,0,0,0.1)" stroke="rgba(255,255,255,0.2)" stroke-width="1.2"/>
+                    <g stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 5 L9.8 7.6 M12 5 L14.2 7.6"/>
+                        <path d="M12 19 L9.8 16.4 M12 19 L14.2 16.4"/>
+                        <path d="M5 12 L7.6 9.8 M5 12 L7.6 14.2"/>
+                        <path d="M19 12 L16.4 9.8 M19 12 L16.4 14.2"/>
+                    </g>
+                    <circle cx="12" cy="12" r="1.4" fill="white"/>
+                </svg>
+            `;
+            Object.assign(marker.style, {
+                position: 'fixed',
+                left: `${x}px`,
+                top: `${y}px`,
+                transform: 'translate(-50%, -50%)',
+                pointerEvents: 'none',
+                zIndex: '9999',
+            });
+            document.body.appendChild(marker);
+            autoPanMarker = marker;
+        }
+
+        function removeAutoPanMarker() {
+            autoPanMarker?.remove();
+            autoPanMarker = null;
+        }
+
+        function stopAutoPan() {
+            if (!autoPanActive) return;
+            autoPanActive = false;
+            if (autoPanRafId !== null) {
+                cancelAnimationFrame(autoPanRafId);
+                autoPanRafId = null;
+            }
+            autoPanCursor = '';
+            map.style.cursor = '';
+            removeAutoPanMarker();
+        }
+
+        function startAutoPan(x: number, y: number) {
+            autoPanActive = true;
+            autoPanOriginX = autoPanLastX = x;
+            autoPanOriginY = autoPanLastY = y;
+            createAutoPanMarker(x, y);
+            setAutoPanCursor('default');
+            autoPanRafId = requestAnimationFrame(autoPanStep);
+        }
+
+        function autoPanStep() {
+            if (!autoPanActive) return;
+
+            const dx = autoPanLastX - autoPanOriginX;
+            const dy = autoPanLastY - autoPanOriginY;
+            const dist = Math.hypot(dx, dy);
+
+            if (dist > AUTO_PAN_DEADZONE) {
+                const speed = Math.min(1, (dist - AUTO_PAN_DEADZONE) / AUTO_PAN_RANGE) * AUTO_PAN_MAX_SPEED;
+                // Scroll/camera convention: moving the mouse right pans the view to the
+                // right, so content already on screen shifts left to make room for what's
+                // newly in view - the opposite sign from the regular click-and-drag pan.
+                panX -= (dx / dist) * speed;
+                panY -= (dy / dist) * speed;
+                applyTransform();
+            } else {
+                setAutoPanCursor('default');
+            }
+
+            autoPanRafId = requestAnimationFrame(autoPanStep);
+        }
+
+        map.addEventListener('mousedown', (e: MouseEvent) => {
+            if (e.button !== 1) return;
+            e.preventDefault(); // stop the browser's native middle-click autoscroll/paste
+            if ((e.target as HTMLElement).closest('#room-list')) return;
+
+            if (autoPanActive) {
+                stopAutoPan();
+                return;
+            }
+
+            // A left-click drag shouldn't keep running underneath the middle button.
+            isDragging = false;
+            map.style.userSelect = '';
+
+            middleDown = true;
+            middleMoved = false;
+            middleStartX = e.clientX;
+            middleStartY = e.clientY;
+            startAutoPan(e.clientX, e.clientY);
+        });
+
+        document.addEventListener('mousemove', (e: MouseEvent) => {
+            if (middleDown && !middleMoved) {
+                const dx = e.clientX - middleStartX;
+                const dy = e.clientY - middleStartY;
+                if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
+                    middleMoved = true;
+                }
+            }
+
+            if (!autoPanActive) return;
+            autoPanLastX = e.clientX;
+            autoPanLastY = e.clientY;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (!middleDown) return;
+            middleDown = false;
+
+            // Held the button down and moved before releasing - stop the instant it's let go.
+            //  A quick click with no movement in between leaves it running (sticky) until the next click or Escape.
+            if (middleMoved) {
+                stopAutoPan();
+            }
+        });
+
+        // Any subsequent click (of any button) stops the autopan instead of performing
+        // its normal action - same convention as native browser/OS middle-click autoscroll.
+        document.addEventListener('mousedown', (e: MouseEvent) => {
+            if (!autoPanActive) return;
+            e.preventDefault();
+            e.stopPropagation();
+            stopAutoPan();
+        }, true);
+
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Escape') stopAutoPan();
+        });
+
+        window.addEventListener('blur', () => stopAutoPan());
+
+        // Also block the browser's default middle-click action (e.g. opening a link in a
+        // new tab) so it doesn't fire alongside/after autopan.
+        map.addEventListener('auxclick', (e: MouseEvent) => {
+            if (e.button === 1) e.preventDefault();
+        });
+
+        // Touch support for mobile drag-to-pan
+        map.addEventListener('touchstart', (e: TouchEvent) => {
+            if (e.touches.length !== 1)
+                return;
+            // Same stale-flag fix as mousedown above.
+            hasMoved = false;
+            // Ignore drags starting inside the room-list, which needs its own scroll
+            if ((e.target as HTMLElement).closest('#room-list')) return;
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            startPanX = panX;
+            startPanY = panY;
+        }, { passive: true });
+
+        map.addEventListener('touchmove', (e: TouchEvent) => {
+            if (!isDragging || e.touches.length !== 1)
+                return;
+            const dx = e.touches[0].clientX - startX;
+            const dy = e.touches[0].clientY - startY;
+
+            if (!hasMoved && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD)) {
+                hasMoved = true;
+            }
+
+            if (hasMoved) {
+                e.preventDefault(); // stop the page from scrolling behind the map
+                panX = startPanX + dx;
+                panY = startPanY + dy;
+                applyTransform();
+            }
+        }, { passive: false }); // passive:false so preventDefault() works
+
+        map.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // Backup for Safari: 'gesturestart'/'gesturechange' are WebKit-only events fired for pinch gestures and can bypass touch-action in some
+        // iOS versions. Block them over the map (but not the room-list) so a pinch can't trigger a native page-zoom re-render of the whole map.
+        ['gesturestart', 'gesturechange', 'gestureend'].forEach((evt) => {
+            map.addEventListener(evt, (e: Event) => {
+                if ((e.target as HTMLElement).closest('#room-list')) return;
+                e.preventDefault();
+            }, { passive: false } as AddEventListenerOptions);
+        });
+
+        // Blogpost:
+        // Center the map on a given element (a room's map label/SVG), no matter how the user has freely dragged/zoomed the map already.
+        //
+        // Rather than nudging panX/panY by a screen-space delta, this reads the element's *current* screen position, undoes the
+        // current transform to recover its untransformed content-local coordinates, and solves directly for the panX/panY that places
+        // that exact content point in the center of #map. That makes it a pure function of "where is this thing" rather than "how far do
+        // I need to nudge from wherever I happen to be" - so it's correct regardless of prior drag/zoom state.
+
+        // Read the transform that's *actually currently painted* on the wrapper, rather than trusting panX/panY/zoom directly. Those
+        // variables get set to their final target the instant a centering click happens, but the visible transform can still be
+        // mid-transition toward that target for up to 400ms afterward. If another center happens in that window (e.g. quickly cycling
+        // between two rooms), measuring the SVG's on-screen position but reasoning about it using the *already-final* panX/panY produces
+        // a mismatch — and that error compounds with every click. Reading the live computed transform keeps the measurement and the pan
+        // state it's reasoned against always in sync, transition or not.
+        function getCurrentTransform() {
+            const computed = getComputedStyle(wrapper).transform;
+            if (!computed || computed === 'none') return { x: 0, y: 0, scale: 1 };
+            const m = new DOMMatrix(computed);
+            return { x: m.m41, y: m.m42, scale: m.a };
+        }
+
+        function centerOnElement(el: Element) {
+            const svgEl = el.querySelector('svg') as SVGSVGElement | null;
+            const mapRect = map.getBoundingClientRect();
+
+            let screenCenterX: number;
+            let screenCenterY: number;
+
+            if (svgEl) {
+                // The label is a full-overlay box, so its own rect is useless for centering — use the painted shape's actual
+                // bounding box (in the SVG's local coordinate space) instead.
+                const bbox = svgEl.getBBox();
+                const shapeCenterSvgX = bbox.x + bbox.width / 2;
+                const shapeCenterSvgY = bbox.y + bbox.height / 2;
+
+                // Convert from SVG viewBox units to on-screen CSS pixels.
+                const svgRect = svgEl.getBoundingClientRect();
+                const vb = svgEl.viewBox.baseVal;
+                const scaleX = svgRect.width  / (vb.width  || svgRect.width  || 1);
+                const scaleY = svgRect.height / (vb.height || svgRect.height || 1);
+
+                screenCenterX = svgRect.left + shapeCenterSvgX * scaleX;
+                screenCenterY = svgRect.top  + shapeCenterSvgY * scaleY;
+            } else {
+                // Fallback: no SVG found, just use the element's own rect.
+                const rect = el.getBoundingClientRect();
+                screenCenterX = rect.left + rect.width  / 2;
+                screenCenterY = rect.top  + rect.height / 2;
+            }
+
+            // Undo the transform that's actually currently painted (not necessarily what panX/panY/zoom say the target is) to get
+            // the target's ACTUAL position in untransformed content-local coordinates...
+            const current = getCurrentTransform();
+            const localX = (screenCenterX - mapRect.left - current.x) / current.scale;
+            const localY = (screenCenterY - mapRect.top  - current.y) / current.scale;
+
+            // ...then solve for the pan that puts that local point at the
+            // exact center of #map, at the current zoom level.
+            zoom = current.scale;
+            panX = mapRect.width  / 2 - zoom * localX;
+            panY = mapRect.height / 2 - zoom * localY;
+
+            wrapper.style.transition = 'transform 0.4s ease';
+            applyTransform();
+            window.setTimeout(() => { wrapper.style.transition = ''; }, 400);
+        }
+
+        // Exposed helper: center the map on a room by its id
+        (window as any).mapCenterOnRoom = (roomId: string) => {
+            // Recompute the breakpoint at click-time (not at listener-attach time), so centering stays correct even if the window was
+            // resized across the sm breakpoint after page load.
+            const mapSuffix = window.innerWidth < 640 ? '-map-sm' : '-map';
+            const targetLabel = document.getElementById(`${roomId}${mapSuffix}`);
+            if (targetLabel) centerOnElement(targetLabel);
+        };
+    }
+
+    document.addEventListener('astro:page-load', () => {
+        initMapPanZoom();
+    });
+
+    if (document.readyState !== 'loading') {
+        initMapPanZoom();
+    }
+</script>
+
+<script>
+    // Respond to a `#<slug>` in the URL (e.g. /map#VendorStalls) the same way clicking
+    // that room in the room-list does: check its highlight radio, sync the highlight
+    // classes, and pan/zoom the map to center it.
+    //
+    // roomId here must match the id scheme used for the highlight radios, i.e.
+    // `room.room.replace(/\s+/g, '')` - so the incoming slug (from the API or wherever
+    // the link was built) needs to already be in that same "spaces stripped" form.
+    function selectRoomFromHash() {
+        const roomId = decodeURIComponent(location.hash.slice(1));
+        if (!roomId) return;
+
+        const radio = document.getElementById(`${roomId}-highlight`) as HTMLInputElement | null;
+        if (!radio) return; // Unknown/garbage hash - ignore rather than throw.
+
+        radio.checked = true;
+        // Setting .checked via JS does not fire 'change' on its own - dispatch it
+        // manually so initHighlightSync's listener runs and syncs the -map/-map-sm
+        // highlight classes (needed on mobile, where only one label can be a direct
+        // CSS sibling of the radio).
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
+
+        // Defer a frame, same as the room-list click handler, so this runs after the
+        // checked-state's layout settles rather than racing it.
+        requestAnimationFrame(() => {
+            (window as any).mapCenterOnRoom?.(roomId);
+        });
+    }
+
+    document.addEventListener('astro:page-load', () => {
+        selectRoomFromHash();
+    });
+
+    if (document.readyState !== 'loading') {
+        selectRoomFromHash();
+    }
+
+    // Also handle hash changes while already on /map (e.g. clicking another #anchor
+    // link without a full page navigation) - astro:page-load won't fire for that.
+    window.addEventListener('hashchange', selectRoomFromHash);
+</script>
+
+<script>
+    document.addEventListener("astro:page-load", () =>
+    {
+        // ACHIEVEMENT: check out the map
+        if (!window.steamAchievements.isUnlocked('map')) {
+            window.steamAchievements.unlock('map');
+        }
+    });
+</script>

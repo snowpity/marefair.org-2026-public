@@ -1,0 +1,314 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+import BgParallaxComplex from '@components/BgParallaxComplex.astro';
+import { marked } from 'marked';
+import Prose from '@components/ProseCharity.astro';
+
+import bgImg from '@assets/charity/Background.png';
+import TowerBot from '@assets/charity/TowerBase.png';
+import TowerMid_Raw from '@assets/charity/TowerMiddle.png';
+import MidInside_RAW from '@assets/charity/TowerInside.png';
+import TowerTop from '@assets/charity/TowerTopDragon.png';
+import TowerTopHug from '@assets/charity/TowerTopHugNoDragon.png';
+
+import Sign from '@assets/charity/CharitySign.png'
+
+import Oakley from '@assets/charity/Knight.png';
+import OakleyDragged from '@assets/charity/KnightPickedUp.png';
+
+const TopRatio = TowerTop.width / TowerTop.height;
+const BotRatio = TowerBot.width / TowerBot.height;
+const MidRatio = MidInside_RAW.width / MidInside_RAW.height;
+const TowerWidth = 1200;
+
+const TopToWidthRatio = TowerTop.width/TowerBot.width
+
+import FallenOak from '@assets/charity/Logos/FallenOak.png'
+import RainbowsEdge from '@assets/charity/Logos/RainbowsEdge.jpg'
+import HorsesThatHelp from '@assets/charity/Logos/HorsesThatHelp.jpg'
+import PaintedHorse from '@assets/charity/Logos/PaintedHorse.png'
+import MareFair from '/public/favicon.svg'
+
+const ROK_MID = await getImage({ src: TowerMid_Raw, format:"avif", width: TowerWidth });
+const MID_INSIDE = await getImage({ src: MidInside_RAW, format:"avif", width: TowerWidth });
+
+const bgWidth = 2560;
+const bgHeight= (bgImg.height / bgImg.width) * bgWidth
+
+const parallaxLayers = [
+    { offset: '0%', imgSrc: bgImg, width: bgWidth },
+];
+
+const origin = Astro.url.origin;
+
+const partners = [
+    {
+        name: "Fallen Oak Equine Rescue",
+        banner: FallenOak,
+        hasInvert: true,
+        description:
+        `Fallen Oak Equine Rescue and Rehabilitation, Inc. is located on 7 acres in beautiful Belleview, Florida.
+        We currently operate out of a five-stall barn, a pasture for grazing, and a round pen for training and evaluating rescued horses.
+        We rely on our devoted foster homes to help us transition horses from our facility to their forever home, and to help us when
+        numbers of horses in-need force us to overflow. We couldn't do what we do without our team of foster parents!`,
+        link: "https://fallenoak.org/"
+    },
+    {
+        name: "Rainbow's Edge",
+        banner: RainbowsEdge,
+        hasInvert: false,
+        description:
+        `At Rainbow's Edge, we assist multiple counties' Law Enforcement, catch loose horses, hold them until the owner is found. We pick up abandoned, neglected, and abused horses to our rescue facility for rehab, training, and adoption. Unadoptable horses, for age or health reasons, stay with us for their lifetime as sanctuary residents.`,
+        link: "https://rainbowsedgeequine.com/"
+    },
+    {
+        name: "Horses That Help",
+        banner: HorsesThatHelp,
+        hasInvert: false,
+        description:
+        `At Horses That Help, we are dedicated to rescuing and rehabilitating horses in need. Our mission is to provide a safe and loving environment for these animals while finding them forever homes.`,
+        link: "https://horsesthathelp.org/"
+    },
+    {
+        name: "The Painted Horse Ranch Rescue",
+        banner: PaintedHorse,
+        hasInvert: false,
+        description:
+        `The Painted Horse Ranch Rescue is dedicated to rescuing horses from neglect, abuse, abandonment, and slaughter. We strive to improve their lives by providing a safe haven for healing, rehabilitation, and to restore their trust in humankind. Support Horse Rescue and Donate Today.
+
+Located in Valkaria, Florida.`,
+        link: "https://www.paintedhorserescue.com/"
+    },
+    {
+        name: "Mare Fair",
+        banner: MareFair,
+        hasInvert: false,
+        description:
+        `This year we're helping out even more horsies at Mare Fair 2026!
+
+All proceeds collected will be split amongst our selected charities this year.  70% of the donations will go to Fallen Oak Equine Rescue and Rehabilitation. 30% (maximum of $30,000) will be split evenly among the following charities:
+
+* Rainbow's Edge
+* Horses That Help
+* Painted Horse Ranch Rescue
+
+Thank you very much for your support and we hope you have a wonderful time at Mare Fair 2026!.`,
+        link: origin + "/donate"
+    },
+]
+
+
+const topWidth = TowerWidth * 2.35;
+const topCutoff = 600; // How much px cut off from the top?
+const topToMidIntersection = topCutoff + TowerWidth/MidRatio;
+---
+
+<Layout title="Charity | Mare Fair 2026">
+    <BgParallaxComplex parallaxLayers={parallaxLayers} imageHeight={bgHeight} sideVignette imageWidth={bgWidth} style=""/>
+
+    <Image src={Sign} width="800" class="absolute center-horizontally z-100 mt-70" alt="Charity Page"/>
+    <div class="">
+        <div id="board" class="relative h-full">
+
+            {/* change height to Auto if using height affecting divs i.e. texts or relative images*/} {/* Note: margin-top controls the ultimare margin on the top of this whole thing; -mb- controls how much the middle intersects the bottom*/}
+            <div id="cen" class="relative max-w-full mx-auto bg-top flex flex-wrap items-center justify-center px-0 h-auto -mb-100" style={`margin-top:${(topWidth / TopRatio) - topToMidIntersection}px; background-image: url(${MID_INSIDE.src}); background-repeat: repeat-y `}>
+                <div class="absolute top-0 left-0 max-w-full mx-auto bg-top flex flex-wrap items-center justify-center px-0 w-full h-full" style={`background-image: url(${ROK_MID.src}); background-repeat: repeat-y `}></div>
+
+                <Image id="topHug" src={TowerTopHug} alt="" format="avif" width={topWidth} height={(topWidth / TopRatio)}
+                    class=`absolute block mx-auto select-none pointer-events-none translate-x-[27px] hidden`
+                    style=`top:-${(topWidth / TopRatio) - topToMidIntersection}px; min-width: ${topWidth}px; margin-top:-${topCutoff}px`/>
+                <Image id="topMain" src={TowerTop} alt="" format="avif" width={topWidth} height={(topWidth / TopRatio)}
+                    class=`absolute block mx-auto select-none pointer-events-none translate-x-[27px]`
+                    style=`top:-${(topWidth / TopRatio) - topToMidIntersection}px; min-width: ${topWidth}px; margin-top:-${topCutoff}px`/>
+                    {/* Note: the top: above controls how far up the top part is from the bottom of the page */}
+                <div id="knightDropBox" class="w-128 h-128 absolute mx-auto"
+                    style=`top:${topCutoff}px; margin-top:-${topCutoff}px`> </div>
+                <div id="corkboard-container"
+                    class="merriweather-sans-bold text-black text-xl text-shadow flex flex-col relative justify-center mb-70 max-w-screen z-[1] md:p-20 p-5"
+                    style=`width: ${TowerWidth/1.5}px; grid-auto-flow: row dense; margin-top: ${topToMidIntersection - topCutoff - 50}px`>
+
+                    <div class="bg-black/60 hover:bg-black/60 md:bg-black/10 transition-[background-color] rounded-xl p-10 prose prose-white">
+                        {partners.map((event, index) => (
+                            <>
+                                {index > 0 && <hr class="border-white/20 my-6" />}
+                                <center><h1>{event.name}</h1></center>
+                                <center><Image src={event.banner} alt={`${event.name} logo`} width={TowerWidth/3} style={`${event.hasInvert && "filter: invert(1);"}}`}/></center>
+                                <Prose >
+                                    <div set:html={marked.parse(event.description)} class="text-white"></div>
+                                </Prose>
+                                <center><a href={event.link} target="_blank" rel="noopener noreferrer">{event.link}</a></center>
+                            </>
+                        ))}
+                    </div>
+
+                </div>
+            </div>
+            <div id="bot" class="relative flex flex-wrap justify-center pointer-events-none z-[0] w-full ">
+                <div class="relative w-fit">
+                    <Image src={TowerBot} alt="" format="avif" width={TowerWidth} height={BotRatio / TowerWidth} class=`block mx-auto select-none pointer-events-none` style=`min-width: ${TowerWidth}px`/>
+
+                </div>
+            </div>
+            <Image id="oakley-knight" src={Oakley} format="avif" alt="The Oakley Knight" width={TowerWidth/2}
+                class="absolute bottom-0 cursor-grab select-none z-50"
+                style={`left: calc(50% - ${TowerWidth/4}px); touch-action: none;`} draggable="false"/>
+            <Image id="oakley-knight-dragged" src={OakleyDragged} format="avif" alt="The Oakley Knight (picked up)" width={TowerWidth/2}
+                class="absolute bottom-0 cursor-grabbing select-none z-50 hidden"
+                style={`left: calc(50% - ${TowerWidth/4}px); touch-action: none;`} draggable="false"/>
+        </div>
+    </div>
+
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+    .imgWidth{
+        width: var(--img-width);
+        max-width: var(--img-width);
+        min-width: var(--img-width);
+    }
+
+    ul {
+        @apply list-disc list-inside;
+    }
+    h1 {
+        @apply md:text-3xl text-2xl mb-10 ;
+    }
+    h2 {
+        @apply text-6xl mb-10;
+    }
+
+    .center-horizontally{
+        @apply left-1/2 -translate-x-1/2;
+    }
+</style>
+
+<script>
+    document.addEventListener('astro:page-load', () => {
+        const knight        = document.getElementById('oakley-knight') as HTMLElement | null;
+        const knightDragged = document.getElementById('oakley-knight-dragged') as HTMLElement | null;
+        const dropBox = document.getElementById('knightDropBox') as HTMLElement | null;
+        const topMain = document.getElementById('topMain') as HTMLElement | null;
+        const topHug  = document.getElementById('topHug')  as HTMLElement | null;
+        const board   = document.getElementById('board')   as HTMLElement | null;
+        if (!knight || !knightDragged || !dropBox || !topMain || !topHug || !board) return;
+
+        topHug.classList.remove('hidden');
+
+        let isDragging = false;
+        let grabOffsetX = 0;
+        let grabOffsetY = 0;
+
+        function unlockAchievement()
+        {
+            if (window.steamAchievements && !window.steamAchievements.isUnlocked('princess'))
+                window.steamAchievements.unlock('princess');
+        }
+
+
+        const isOverDropBox = (clientX: number, clientY: number) => {
+            const r = dropBox.getBoundingClientRect();
+            return clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom;
+        };
+
+        knight.addEventListener('pointerdown', (e: PointerEvent) => {
+            e.preventDefault();
+            isDragging = true;
+            knight.setPointerCapture(e.pointerId);
+
+            // Record grab offset before hiding the knight
+            const r = knight.getBoundingClientRect();
+            grabOffsetX = e.clientX - r.left;
+            grabOffsetY = e.clientY - r.top;
+
+            // Position the dragged sprite exactly where the knight currently is
+            const boardRect = board.getBoundingClientRect();
+            knightDragged.style.left   = `${r.left - boardRect.left}px`;
+            knightDragged.style.top    = `${r.top  - boardRect.top  + board.scrollTop}px`;
+            knightDragged.style.bottom = 'auto';
+
+            // Now switch sprites
+            knight.classList.add('hidden');
+            knightDragged.classList.remove('hidden');
+            knightDragged.style.cursor = 'grabbing';
+        });
+
+        knight.addEventListener('pointermove', (e: PointerEvent) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            const boardRect = board.getBoundingClientRect();
+            const newLeft = `${e.clientX - grabOffsetX - boardRect.left}px`;
+            const newTop  = `${e.clientY - grabOffsetY - boardRect.top  + board.scrollTop}px`;
+            // Move the visible dragged sprite
+            knightDragged.style.left   = newLeft;
+            knightDragged.style.top    = newTop;
+            knightDragged.style.bottom = 'auto';
+            // Keep hidden knight in sync so drop-restore lands in the right place
+            knight.style.left   = newLeft;
+            knight.style.top    = newTop;
+            knight.style.bottom = 'auto';
+        });
+
+        knight.addEventListener('pointerup', (e: PointerEvent) => {
+            if (!isDragging) return;
+            isDragging = false;
+
+            if (isOverDropBox(e.clientX, e.clientY)) {
+                topMain.classList.add('hidden');
+                knight.remove();
+                knightDragged.remove();
+                unlockAchievement();
+            } else {
+                // Switch back to the normal sprite
+                knightDragged.classList.add('hidden');
+                knight.classList.remove('hidden');
+                knight.style.cursor = 'grab';
+            }
+        });
+    });
+</script>
+
+<script>
+    /*
+    document.addEventListener('astro:page-load', () => {
+        const wrapper = document.getElementById('parallax-wrapper') as HTMLElement | null;
+        if (!wrapper) { console.warn('wrapper not found'); return; }
+
+        wrapper.classList.remove('center-horizontally');
+        wrapper.style.left = '50%';
+        wrapper.style.setProperty('--tw-translate-x', '0px');
+        wrapper.style.transformOrigin = 'center center';
+        wrapper.style.scale = "1.1";
+
+        const PARALLAX_STRENGTH = 60;
+
+        let targetX = 0;
+        let targetY = 0;
+        let currentX = 0;
+        let currentY = 0;
+
+        const onMouseMove = (e: MouseEvent) => {
+            const normX = (e.clientX / window.innerWidth) * 2 - 1;
+            const normY = (e.clientY / window.innerHeight) * 2 - 1;
+            targetX = -normX * PARALLAX_STRENGTH;
+            targetY = -normY * PARALLAX_STRENGTH;
+        };
+
+        const animate = () => {
+            currentX += (targetX - currentX) * 0.06;
+            currentY += (targetY - currentY) * 0.06;
+            // -50% handles centering, offset handles parallax
+            wrapper.style.transform = `translateX(calc(-50% + ${currentX.toFixed(2)}px)) translateY(calc(${-PARALLAX_STRENGTH}px + ${currentY.toFixed(2)}px)) scale(1.1)`;
+            requestAnimationFrame(animate);
+        };
+
+        window.addEventListener('mousemove', onMouseMove);
+        requestAnimationFrame(animate);
+
+        document.addEventListener('astro:before-preparation', () => {
+            window.removeEventListener('mousemove', onMouseMove);
+        }, { once: true });
+    });
+    */
+</script>

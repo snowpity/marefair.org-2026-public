@@ -1,0 +1,165 @@
+---
+import FrontDeskSvg from "@assets/map/MAP_SVG/1_front_desk.svg?raw";
+import RegistrationSvg from "@assets/map/MAP_SVG/2_registration.svg?raw";
+import MareStageSvg from "@assets/map/MAP_SVG/3_mare_stage.svg?raw";
+import VendorHallSvg from "@assets/map/MAP_SVG/4_vendor_stalls.svg?raw";
+import BatPonyBordelloSvg from "@assets/map/MAP_SVG/5_bat_pony_bordello.svg?raw";
+import FlorbWizardTowerSvg from "@assets/map/MAP_SVG/6_florb_wizard_tower.svg?raw";
+import MarechandiseSvg from "@assets/map/MAP_SVG/7_marechandise.svg?raw";
+import InfoDeskSvg from "@assets/map/MAP_SVG/8_info_desk.svg?raw";
+import CryptOfUndeadConsSvg from "@assets/map/MAP_SVG/9_crypt_of_undead_cons.svg?raw";
+import FairFlyerFairyRingSvg from "@assets/map/MAP_SVG/10_fair_flyer_fairy_ring.svg?raw";
+import DarkLordAnonSvg from "@assets/map/MAP_SVG/11_dark_lord_anon_oc_dungeon.svg?raw";
+import NasaponeSvg from "@assets/map/MAP_SVG/12_nasapone_tinkering_tent.svg?raw";
+import RenegadeStageSvg from "@assets/map/MAP_SVG/13_renegade_stage.svg?raw";
+import GatormareSvg from "@assets/map/MAP_SVG/14_gatormare_charity_hoard.svg?raw";
+import JannySvg from "@assets/map/MAP_SVG/15_janny_closet.svg?raw";
+import ShuttleSvg from "@assets/map/MAP_SVG/16_shuttle_entrance.svg?raw";
+import MareSquareSvg from "@assets/map/MAP_SVG/17_mare_square.svg?raw";
+import MareGallerySvg from "@assets/map/MAP_SVG/18_mare_gallery.svg?raw";
+import SunbeamSanctumSvg from "@assets/map/MAP_SVG/19_sunbeam_sanctum.svg?raw";
+import FunRaiserLevitationStationSvg from "@assets/map/MAP_SVG/20_fun_raiser_levitation_station.svg?raw";
+import TwinVestiarySvg from "@assets/map/MAP_SVG/21_twin_vestiary.svg?raw";
+
+export const rooms = [
+    {
+        'room': "Front Desk",
+        'desc': "",
+        'svg': FrontDeskSvg,
+        'alternates': [] as string[],
+    },
+    {
+        'room': "Registration",
+        'desc': "",
+        'svg': RegistrationSvg,
+        'alternates': [] as string[],
+    },
+    {
+        'room': "Mare Stage",
+        'desc': "Palm 1/2",
+        'svg': MareStageSvg,
+        'alternates': ["Mare Events", "Main Stage"] as string[],
+    },
+    {
+        'room': "Vendor Stalls",
+        'desc': "International North/Center",
+        'svg': VendorHallSvg,
+        'alternates': [] as string[],
+    },
+    {
+        'room': "Arrhythmia's Bat Pony Bordello",
+        'desc': "International South",
+        'svg': BatPonyBordelloSvg,
+        'alternates': [] as string[],
+    },
+    {
+        'room': "Floor Bored's Wizard Tower",
+        'desc': "Palm 3/4",
+        'svg': FlorbWizardTowerSvg,
+        'alternates': ["Floor Bored's Battle Station (Palm 3/4)"] as string[],
+    },
+    {
+        'room': "Marechandise",
+        'desc': "Palm 5",
+        'svg': MarechandiseSvg,
+        'alternates': [] as string[],
+    },
+    {
+        'room': "Info Desk",
+        'desc': "",
+        'svg': InfoDeskSvg,
+        'alternates': [] as string[],
+    },
+    {
+        'room': "Crypt Of The Undead Conventions",
+        'desc': "Grand II/III",
+        'svg': CryptOfUndeadConsSvg,
+        'alternates': ["Crypt of the Undead Conventions (Grand II/III)"] as string[],
+    },
+    {
+        'room': "Fair Flyer's Fairy Ring",
+        'desc': "Grand I",
+        'svg': FairFlyerFairyRingSvg,
+        'alternates': ["Fair Flyer's Fairy Ring (Grand I)"] as string[],
+    },
+    {
+        'room': "Dark Lord Anon's OC Dungeon",
+        'desc': "Grand IV/V",
+        'svg': DarkLordAnonSvg,
+        'alternates': ["Dark Lord Anon's OC Dungeon (Grand IV/V)"] as string[],
+    },
+    {
+        'room': "Nasapone's Tinkering Tent",
+        'desc': "Grand VI",
+        'svg': NasaponeSvg,
+        'alternates': ["Nasapone's Tinkering Tent (Grand VII/VIII)"] as string[],
+    },
+    {
+        'room': "Renegade Stage",
+        'desc': "Grand VII/VIII",
+        'svg': RenegadeStageSvg,
+        'alternates': ["Renegade Stage (Grand VI)"] as string[],
+    },
+    {
+        'room': "Gatormare's Charity Hoard",
+        'desc': "Crystal",
+        'svg': GatormareSvg,
+        'alternates': [] as string[],
+    },
+    {
+        'room': "Ye Olde Janitorial Closet",
+        'desc': "Sunflower",
+        'svg': JannySvg,
+    },
+    {
+        'room': "Shuttle Entrance",
+        'desc': "",
+        'svg': ShuttleSvg,
+    },
+    {
+        'room': "Mare Square",
+        'desc': "Mezzanine",
+        'svg': MareSquareSvg,
+    },
+    {
+        'room': "Mare Gallery",
+        'desc': "Orange Blossom",
+        'svg': MareGallerySvg,
+        'alternates': ["Mare Gallery (Narcissus/Orange Blossom)"] as string[],
+    },
+    {
+        'room': "Sunbeam Sanctum",
+        'desc': "Dogwood/Camellia",
+        'svg': SunbeamSanctumSvg,
+        'alternates': ["Sunbeam Sanctum (Camellia/Dogwood)"] as string[],
+    },
+    {
+        'room': "Fun Raiser's Levitation Station",
+        'desc': "Fuchsia/Gardenia",
+        'svg': FunRaiserLevitationStationSvg,
+        'alternates': ["Fun Raiser's Levitation Station (Fuchsia/Gardenia)"] as string[],
+    },
+    {
+        'room': "The Twins' Vestiary",
+        'desc': "Kahili/Lily",
+        'svg': TwinVestiarySvg,
+        'alternates': ["The Twins' Vestiary (Kahili/Lily)"] as string[],
+    },
+]
+
+export function buildRoomMapping(roomList: typeof rooms): Record<string, string> {
+    const mapping: Record<string, string> = {};
+
+    roomList.forEach((r) => {
+        mapping[r.room] = r.room;
+        if (r.desc) {
+            mapping[`${r.room} (${r.desc})`] = r.room;
+        }
+        r.alternates?.forEach((alt) => {
+            mapping[alt] = r.room;
+        });
+    });
+
+    return mapping;
+}
+---

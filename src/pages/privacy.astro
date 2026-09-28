@@ -1,0 +1,106 @@
+---
+import { Image, getImage } from 'astro:assets';
+import TilingScroll from '@components/TilingScroll.astro';
+import BgTileable from '@components/BgTileable.astro';
+import Layout from '@layouts/Layout.astro';
+
+import { marked } from 'marked';
+import Prose from '@components/ProsePrivacy.astro';
+
+const response = fetch("https://raw.githubusercontent.com/snowpity/Mare-Fair-Policies/refs/heads/master/Privacy%20Policy.md");
+
+// Wait for response and get text
+let privacyText = await (await response).text();
+
+
+// Extract and remove h1 heading
+const h1Regex = /^# (.+)$/m;
+const h1Match = h1Regex.exec(privacyText);
+let h1Title = 'Privacy Policy'; // default title
+
+if (h1Match) {
+  h1Title = h1Match[1];
+  // Remove the h1 line from the text
+  privacyText = privacyText.replace(h1Regex, '').trim();
+}
+
+// Extract h2 headings to create navigation
+const h2Regex = /^## (.+)$/gm;
+const renderedPolicies: {title: string, anchor: string, html: string|Promise<string>}[] = [];
+let match;
+let lastIndex = 0;
+const sections: {title: string, anchor: string, content: string}[] = [];
+
+// Capture content before first h2
+const firstH2Match = h2Regex.exec(privacyText);
+if (firstH2Match) {
+  const introContent = privacyText.substring(0, firstH2Match.index);
+  if (introContent.trim()) {
+    sections.push({
+      title: h1Title,
+      anchor: h1Title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
+      content: introContent
+    });
+  }
+
+  // Reset regex and process all h2s
+  h2Regex.lastIndex = 0;
+  let lastIndex = 0;
+
+  while ((match = h2Regex.exec(privacyText)) !== null) {
+    if (sections.length > 1) {
+      // Add content from last heading to this heading
+      sections[sections.length - 1].content = privacyText.substring(lastIndex, match.index);
+    }
+
+    const title = match[1];
+    const anchor = title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+    sections.push({ title, anchor, content: '' });
+    lastIndex = h2Regex.lastIndex;
+  }
+
+  // Add content after the last heading
+  if (sections.length > 1) {
+    sections[sections.length - 1].content = privacyText.substring(lastIndex);
+  }
+} else {
+  // No h2 headings found, render entire content
+  sections.push({
+    title: h1Title,
+    anchor: h1Title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'),
+    content: privacyText
+  });
+}
+
+// Render each section
+for (const section of sections) {
+  renderedPolicies.push({
+    title: section.title,
+    anchor: section.anchor,
+    html: marked.parse(section.content),
+  });
+}
+import woodRaw from "@assets/bg/wood.png";
+const wood = await getImage({ src: woodRaw, format:"png", height:2048});
+---
+<Layout title="Privacy Policy | Mare Fair 2026">
+    <BgTileable imgSrc={wood.src} vignette stain/>
+        <TilingScroll navigation={renderedPolicies}>
+        <Prose>
+            {renderedPolicies.map((policy,index) => (
+                <a href={`#${policy.anchor}`} class="no-underline">
+                    {index == 0 ? (
+                        <h1 id={policy.anchor}>
+                            {policy.title}
+                        </h1>
+                    ) : (
+                        <h2 id={policy.anchor}>
+                            {policy.title}
+                        </h2>
+                    )}
+                </a>
+                <div set:html={policy.html} class="content"></div>
+            ))}
+        </Prose>
+    </TilingScroll>
+</Layout>

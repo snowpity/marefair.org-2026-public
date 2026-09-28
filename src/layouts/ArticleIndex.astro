@@ -1,0 +1,199 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+import type { CollectionEntry } from 'astro:content';
+
+import Article from '@components/Article.astro';
+import BgTileable from '@components/BgTileable.astro';
+
+interface Props {
+  newsCollection: CollectionEntry<'news'>[];
+  filterNavigation?: boolean;
+  header: string;
+  latest?:boolean;
+  title?: string;
+}
+
+const { newsCollection, filterNavigation, header, latest, title } = Astro.props;
+
+import frameTop from "@assets/news/frametop.png";
+import frameSidesRaw from "@assets/news/framesides.png";
+import frameBottom from "@assets/news/framebottom.png";
+
+const frameSides = await getImage({ src: frameSidesRaw, format:"avif" });
+
+const latestNews = newsCollection.length > 0 ? newsCollection[0] : null;
+
+import velvetRaw from "@assets/bg/velvet.png";
+const velvet = await getImage({ src: velvetRaw, format:"avif", height:1024});
+
+import woodRaw from "@assets/bg/wood.png";
+const wood = await getImage({ src: woodRaw, format:"png", height:2048});
+
+import atlasRaw from "@assets/news/hear_ye_hear_ye_png_list.png";
+const atlas = await getImage({ src: atlasRaw, format: "avif", height:300 });
+
+import newsHeader from "@assets/news/website_sign.png";
+---
+
+<Layout {...(title && { title })}>
+    <BgTileable imgSrc={wood.src} vignette stain/>
+    {filterNavigation? (
+    <div id="news"/>
+    <div id="events"/>
+    <div id="videos"/>
+    <div id="all"/>
+    ) : ''}
+        <main class="relative">
+
+        {/* Weirdest shit, but it needs relative to hide overflow correctly */}
+        {/*
+        <div class="relative overflow-hidden w-full h-auto flex justify-center items-center w-screen h-auto md:-mb-[17rem] -mb-[35%]">
+            <Image src={titleLogo} format="avif" alt="Mare Fair 2025, September 5 through 7 in Orlando, Florida" class="max-w-none w-[220vw] md:w-auto" width={1700}/>
+            <Image src={titleNeon} format="avif" alt="Mare Fair 2025, September 5 through 7 in Orlando, Florida" class="absolute top-0 max-w-none w-[220vw] md:w-auto neon-glow" width={1700}/>
+        </div>
+        */}
+        <div class="relative z-10">
+            {/* If we have another tiling layer on top of vignette layer, this might be an approach
+            <div id="corkboard"       class="absolute max-w-full mx-auto bg-center inset-0 m-auto h-[calc(100% - 25rem)] bg-cover" style={`background-image: url(${backdrop.src}), url(${corkboard.src}); width:calc(${frameSides.width}px - 150px); height: calc(100% - 150px); background-size: 200% ,400px; box-shadow: inset 0 0 200px #803722;`}> </div>
+            <div id="corkboard-layer" class="absolute max-w-full mx-auto bg-center inset-0 m-auto h-[calc(100% - 25rem)] bg-cover" style={`background-image: url(${backdrop.src}); width:calc(${frameSides.width}px - 150px); height: calc(100% - 150px); background-size: 170%;`}></div>
+            */}
+
+        <div class="relative max-w-screen h-fit flex justify-end mx-auto" style=`width: ${frameTop.width - 200}px`>
+            <div class="absolute left-0 bottom-0 -mb-24 z-10 mr-[300px] md:block hidden">
+                <Image src={newsHeader} height={300} format="avif" alt="" class="relative" inert/>
+                <div class="absolute bottom-0 left-0 w-full h-[80%] flex justify-center items-center">
+                    <h1 class="text-6xl tagesschrift-regular"> {header} </h1>
+                </div>
+            </div>
+            <div id="crier" class="relative -mb-24 w-fit h-fit" inert>
+                <div class="atlas atlas-absolute animate-wave origin-[42%_86%]">
+                    <div class="atlas relative animate-blink-delayed" style={`background-image: url(${atlas.src}); background-position: -${3 * 100}%;`}></div>
+                    <div class="atlas atlas-absolute animate-blink-delayed-inverted invisible" style={`background-image: url(${atlas.src}); background-position: -${2 * 100}%;`}></div>
+                </div>
+                <div class="atlas relative" style={`background-image: url(${atlas.src}); background-position: -${0 * 100}%;`}></div>
+                <div class="atlas atlas-absolute animate-blink" style={`background-image: url(${atlas.src}); background-position: -${1 * 100}%;`}></div>
+                <div class="atlas atlas-absolute z-10" style={`background-image: url(${atlas.src}); background-position: -${4 * 100}%;`}></div>
+            </div>
+        </div>
+        <div id="board" class="relative h-full overflow-hidden">
+            <div id="top" class="relative flex flex-wrap justify-center" inert>
+                <Image src={frameTop} alt="" format="avif" width={frameTop.width} height={frameTop.height} class=`block mx-auto` style=`min-width: ${frameTop.width}px`/>
+            </div>
+            {/* change height to Auto if using height affecting divs i.e. texts or relative images*/}
+            <div id="cen" class="relative max-w-full mx-auto bg-top flex flex-wrap items-center justify-center px-0 h-auto" style={`background-image: url(${frameSides.src});width: ${frameSidesRaw.width}px;`}>
+                <div id="corkboard" class="absolute max-w-full mx-auto bg-center inset-0 bg-cover -z-10 -mt-[19rem] bg-size-[50%]" style={`background-image: url(${velvet.src}); width:calc(${frameSidesRaw.width}px - 150px); height: calc(${20}rem + 100%); box-shadow: inset 0 0 200px #803722;`}> </div>
+                <div id="corkboard-container" class="flex flex-col relative justify-center -translate-y-56 -mb-44 lg:w-[1000px] w-[720px] z-[1]" style="grid-auto-flow: row dense;">
+                    <div class="relative justify-center z-10 -mt-[25%] md:hidden block w-fit mx-auto">
+                        <Image src={newsHeader} height={300} format="avif" alt="" class="relative" inert/>
+                        <div class="absolute bottom-0 left-0 w-full h-[80%] flex justify-center items-center">
+                            <h1 class="text-6xl tagesschrift-regular"> {header} </h1>
+                        </div>
+                    </div>
+                    {/* header ? ( //W e're using the other header
+                        <div class="mx-auto text-white mb-10 text-center bg-black/50 p-4 rounded-md text-xl"> {header}</div>
+                    ) : '' */}
+
+                    {filterNavigation? (
+                    <div class="mx-auto text-white mb-10 text-center bg-black/50 p-4 rounded-md"> Filter Articles by Tags
+                        <div class="space-x-0.5 flex flex-row mt-2">
+                            <a href="#news" class="filter-button"> News </a>
+                            <a href="#events" class="filter-button"> Events </a>
+							<a href="#videos" class="filter-button"> Videos </a>
+                            <a href="#all" class="filter-button"> All </a>
+                        </div>
+                    </div>
+                    ) : ''}
+
+                    {latest && latestNews? (
+                        <div class="mx-auto text-white mb-10 text-center bg-black/50 p-4 rounded-md"> LATEST: </div>
+                        <div class={`article-wrapper ${latestNews.data.tags?.map((tag: any) => `tag-${tag.name}`).join(' ')}`}>
+                            <a href={`/news/${latestNews.data.slug}`} class="">
+                                <Article article={latestNews.data} />
+                            </a>
+                        </div>
+                    ): ''}
+                    <!-- News Articles Grid -->
+                    <div id="news-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full h-full ">
+                    {(latest ? newsCollection.slice(1) : newsCollection).map(({ data: article }: { data: any }, index: number) => (
+                        <div class={`article-wrapper ${article.tags?.map((tag: any) => `tag-${tag.name}`).join(' ')}`}>
+                            <a href={`/news/${article.slug}`} class="">
+                                <Article article={article} index={index} />
+                            </a>
+                        </div>
+                    ))}
+
+                    </div>
+
+                </div>
+            </div>
+            <div id="bot" class="relative flex flex-wrap justify-center z-[0] bottom-64 -mb-50 w-full" inert>
+                <Image src={frameBottom} alt="" format="avif" width={frameBottom.width} height={frameBottom.height} class=`block mx-auto` style=`min-width: ${frameBottom.width}px`/>
+            </div>
+        </div>
+    </main>
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+    #news:target ~ main .article-wrapper:not(.tag-news) {
+        @apply hidden;
+    }
+    #events:target ~ main .article-wrapper:not(.tag-events) {
+        @apply hidden;
+    }
+
+    #videos:target ~ main .article-wrapper:not(.tag-videos) {
+        @apply hidden;
+    }
+
+    :root {
+        --image-size: 300px;
+        --atlas-count: 5;
+    }
+
+    .atlas {
+        @apply aspect-square;
+        width: var(--image-size);
+        height: var(--image-size);
+        background-size: calc(var(--atlas-count) * 100%);
+    }
+
+    .atlas-absolute {
+        @apply absolute top-0 left-0;
+    }
+
+    .filter-button{
+        @apply flex items-center justify-center w-20 h-10 bg-black rounded-md hover:bg-slate-900 transition-colors;
+    }
+
+
+
+    #news-grid .article-wrapper:nth-child(4n+1) {
+      transform: rotate(-2deg);
+    }
+    #news-grid .article-wrapper:nth-child(4n+2) {
+      transform: rotate(1deg);
+    }
+    #news-grid .article-wrapper:nth-child(4n+3) {
+      transform: rotate(-1deg);
+    }
+    #news-grid .article-wrapper:nth-child(4n+4) {
+      transform: rotate(2deg);
+    }
+
+    #corkboard {
+        filter: sepia(100%) hue-rotate(180deg) saturate(150%);
+    }
+
+    /* Article Wrapper Styling */
+    .article-wrapper {
+        @apply origin-center relative transition-transform duration-500 ;
+        transition: transform 0.2s ease-in-out, z-index 0.1s ease-in-out;
+    }
+
+    .article-wrapper:hover {
+        transform: scale(1.05) rotate(0deg) !important;
+        z-index: 20;
+    }
+</style>

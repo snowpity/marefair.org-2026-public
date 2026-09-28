@@ -1,0 +1,80 @@
+---
+import { Image } from 'astro:assets';
+
+interface Props {
+    image: any;
+    index: number;
+    prevName?: string;
+    nextName?: string;
+}
+
+const { image, index, prevName, nextName } = Astro.props;
+---
+
+<li class={`relative flex ${index % 2 == 1 ? "flex-row-reverse" : ""} h-1/5`}>
+    <a href={`#${image.name.replace(/\s+/g, '')}`} class="thumbnail-wrapper">
+        {
+        image.thumbnail ?
+        (
+            <Image
+                src={image.thumbnail}
+                format={image.format === "gif" ? "avif" : image.format || "avif"}
+                alt={image.alt}
+                class="thumbnail"
+                {...(image.thumbnail.height > image.thumbnail.width ? { height: 300 / (image.frames || 1) } : { width: 300 / (image.frames || 1) })}
+            />
+        ) :
+        typeof image.src !== 'string' ?
+        (
+            <Image
+                src={image.src}
+                format={image.format === "gif" ? "avif" : image.format || "avif"}
+                alt={image.alt}
+                class="thumbnail"
+                height={300}
+            />
+        ) : image.format === 'webm' ? (
+            <video
+                src={image.src}
+                class="thumbnail"
+                poster={image.poster}
+                preload="metadata"
+                muted
+            />
+        ) : (
+            <img
+                src={image.src}
+                alt={image.alt}
+                class="thumbnail"
+            />
+        )}
+    </a>
+
+    <div class="tagesschrift-regular md:text-base text-[3vw] mx-[2%]">
+        <h1><b>{image.name}</b></h1>
+        <p>{image.description}</p>
+    </div>
+</li>
+
+<style>
+    @reference "tailwindcss";
+    .thumbnail-wrapper {
+        @apply flex-shrink-0 h-full aspect-square flex items-center justify-center overflow-hidden;
+    }
+    .thumbnail {
+        @apply max-h-full max-w-full w-auto h-auto object-contain;
+    }
+</style>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        document.querySelectorAll('a.thumbnail-wrapper').forEach(a => {
+            a.addEventListener('keydown', (e: any) => {
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    (a as HTMLElement).click();
+                }
+            });
+        });
+    });
+</script>

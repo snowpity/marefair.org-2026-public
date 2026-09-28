@@ -1,0 +1,146 @@
+---
+import { Image } from "astro:assets";
+import ratingExplicit from "@assets/schedules/RatingsVectorsExp.png";
+import ratingQuestionable from "@assets/schedules/RatingsVectorsQuestionable.png";
+import ratingSafe from "@assets/schedules/RatingsVectorsSafe.png";
+import ratingSuggestive from "@assets/schedules/RatingsVectorsSuggestive.png";
+import ratingUnrated from "@assets/schedules/RatingsVectorsUnrated.png";
+
+// Determine the day label based on event date.
+// Uses local time (not UTC) and rolls post-midnight hours back to the
+// previous convention day (schedule runs until 2:30 AM).
+function getDayLabel(date: Date): string {
+    let d = new Date(date);
+    // Hours 0-7 belong to the previous convention day
+    if (d.getHours() < 8) {
+        d = new Date(d.getTime() - 24 * 60 * 60 * 1000);
+    }
+    const month = d.getMonth() + 1;
+    const day   = d.getDate();
+    const year  = d.getFullYear();
+    if (year === 2025 && month === 9 && day === 5) return 'Friday';
+    if (year === 2025 && month === 9 && day === 6) return 'Saturday';
+    if (year === 2025 && month === 9 && day === 7) return 'Sunday';
+    return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][d.getDay()];
+}
+
+interface Props {
+    event: {
+        name: string;
+        description: string;
+        business_name: string;
+        'context-id': string;
+        rating: string | string[];
+        startTime: Date;
+        endTime: Date;
+        room?: string;
+    };
+    ratings: string[];
+    day?: string;
+    enableMySchedule?: boolean;
+}
+
+const { event, ratings, day, enableMySchedule = true } = Astro.props;
+const rating = Array.isArray(event.rating) ? event.rating[0] : event.rating;
+const eventId = `${event.name.replace(/\s+/g, '-')}-${event.startTime.toString().replace(/\s+/g, '-')}`;
+
+const bg_rating = ratings.includes(rating) ? {
+    [ratings[0]]: "bg-white",
+    [ratings[1]]: "bg-green-300",
+    [ratings[2]]: "bg-cyan-300",
+    [ratings[3]]: "bg-amber-300",
+    [ratings[4]]: "bg-red-300",
+}[rating] : "bg-white";
+
+const ratingSrc = ratings.includes(rating) ? {
+    [ratings[0]]: ratingUnrated,
+    [ratings[1]]: ratingSafe,
+    [ratings[2]]: ratingSuggestive,
+    [ratings[3]]: ratingQuestionable,
+    [ratings[4]]: ratingExplicit,
+}[rating] : ratingUnrated;
+
+const durationMs = event.endTime.getTime() - event.startTime.getTime();
+
+// Get whole hours
+const hours = Math.floor(durationMs / (1000 * 60 * 60));
+// Get remaining minutes
+const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+
+// Format start and end times as 12-hour format with AM/PM
+const formatTime = (date: Date) => {
+    const hours24 = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+
+    const hours12 = hours24 === 0 ? 12 : hours24 > 12 ? hours24 - 12 : hours24;
+    const ampm = hours24 >= 12 ? 'PM' : 'AM';
+
+    return `${hours12}:${minutes} ${ampm}`;
+};
+
+const startTimeFormatted = formatTime(event.startTime);
+const endTimeFormatted = formatTime(event.endTime);
+---
+
+<input type="radio" name="schedule-event-toggle" id={`${eventId}-toggle`} class="hidden"/>
+<div id={eventId} class="fixed w-screen h-screen z-30 hidden pointer-events-none bg-black/60 backdrop-blur-sm">
+    <label for="default-event-toggle" class="absolute inset-0 w-full h-full cursor-pointer"/>
+    <div class={`absolute-centered ${bg_rating} w-[40rem] max-w-[100vw] max-h-[80vh] h-auto overflow-y-auto rounded-xl p-10 shadow-xl shadow-black/30`}>
+        <Image src={ratingSrc} alt={`Rating ${rating}`} width="100" class="float-right shadow-md shadow-black/30 ml-2 mb-2"/>
+        <h2 class="text-2xl font-bold mb-4">{event.name}</h2>
+        <p class="font-bold">Presented by: {event.business_name}</p>
+        <p class="mb-4 font-bold">Time: {startTimeFormatted} - {endTimeFormatted}   ({hours}:{minutes.toString().padStart(2, '0')} hrs)</p>
+        <p set:html={event.description.split('\n').join('<br>')}></p>
+        {
+            rating && !rating.includes('NOT A PANEL') ?
+            (
+                <p class="text-gray-700 text-sm mt-4">Rating: {rating}</p>
+            )
+            : ''
+        }
+
+        {enableMySchedule && (
+            <button
+                class="schedule-btn-default mt-6 w-full py-2.5 px-4 rounded-lg font-semibold text-sm transition-colors duration-200 cursor-pointer"
+                data-schedule-btn
+                data-name={event.name}
+                data-start={startTimeFormatted}
+                data-end={endTimeFormatted}
+                data-rating={rating}
+                data-business={event.business_name}
+                data-context-id={event['context-id']}
+                data-description={event.description}
+                data-room={event.room || ''}
+                data-day={day ?? getDayLabel(event.startTime)}
+
+            >
+                + Add to My Schedule
+            </button>
+        )}
+    </div>
+</div>
+
+<script>
+    import { toggleEventRef, makeEventId } from '@scripts/my-schedule-store';
+
+    function initScheduleButtons() {
+        document.querySelectorAll('[data-schedule-btn]').forEach(btn => {
+            // Avoid double-binding
+            if ((btn as HTMLElement).dataset.bound) return;
+            (btn as HTMLElement).dataset.bound = 'true';
+
+            btn.addEventListener('click', (e) => {
+                const el = e.currentTarget as HTMLElement;
+                const name = el.dataset.name!;
+                const id = makeEventId(el.dataset.contextId, name);
+                const added = toggleEventRef({ id, name });
+                document.dispatchEvent(new CustomEvent('toggle-my-schedule-event', {
+                    detail: { id, added }
+                }));
+            });
+        });
+    }
+
+    document.addEventListener('astro:page-load', initScheduleButtons);
+    document.addEventListener('astro:after-swap', initScheduleButtons);
+</script>

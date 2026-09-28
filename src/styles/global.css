@@ -1,0 +1,82 @@
+@import "tailwindcss";
+@plugin '@tailwindcss/typography';
+
+/* Look at about.astro for example on how to use arbitrary value with custom animation*/
+@theme {
+    --breakpoint-mu: 574px;
+
+    --animate-blink: blink 1s step-end infinite;
+    @keyframes blink {
+        0%, 100% { visibility: visible; }
+        50% { visibility: hidden; }
+    }
+
+    --animate-blink-inverted: blink-inverted 1s step-end infinite;
+    @keyframes blink-inverted {
+        0%, 100% { visibility: hidden; }
+        50% { visibility: visible; }
+    }
+
+    --animate-wave: wave 1s ease-in-out infinite;
+    @keyframes wave {
+        0%, 100% {transform: rotate(0); }
+        50% { transform: rotate(-40deg); }
+    }
+
+    --animate-wiggle: wiggle 200ms ease-in-out;
+    @keyframes wiggle {
+        0%, 100% {transform: rotate(0); }
+        25% { transform: rotate(-1deg); }
+        75% { transform: rotate(1deg); }
+    }
+
+    --animate-sine-wave: sine-wave 1s ease-in-out infinite;
+    @keyframes sine-wave {
+        0%, 100% {transform: translateY(0); }
+        50% { transform: translateY(64px); }
+    }
+
+    --breakpoint-uline: 451px;
+
+    --animate-blink-delayed: blink 1s step-end infinite 0.15s;
+    --animate-blink-delayed-inverted: blink 1s step-end infinite 0.65s;
+}
+
+@utility prose-white {
+    --tw-prose-body: white;
+    --tw-prose-headings: white;
+    --tw-prose-lead: rgba(255,255,255,0.8);
+    --tw-prose-bold: white;
+    --tw-prose-counters: rgba(255,255,255,0.7);
+    --tw-prose-bullets: rgba(255,255,255,0.5);
+    --tw-prose-hr: rgba(255,255,255,0.2);
+    --tw-prose-quotes: white;
+    --tw-prose-quote-borders: rgba(255,255,255,0.3);
+    --tw-prose-captions: rgba(255,255,255,0.6);
+    --tw-prose-code: white;
+    --tw-prose-pre-code: rgba(255,255,255,0.9);
+    --tw-prose-pre-bg: rgba(0,0,0,0.3);
+    --tw-prose-th-borders: rgba(255,255,255,0.3);
+    --tw-prose-td-borders: rgba(255,255,255,0.2);
+    /*
+    p {
+        @apply indent-8;
+    }
+    */
+
+    a {
+        @apply text-blue-400 underline hover:text-blue-200 hover:no-underline;
+    }
+}
+
+@layer utilities {
+  /* Chrome, Safari, and Opera */
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  /* IE, Edge, and Firefox */
+  .scrollbar-none {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}

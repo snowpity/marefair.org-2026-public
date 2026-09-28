@@ -1,0 +1,461 @@
+---
+import { Image, getImage } from "astro:assets";
+import Layout from "@layouts/Layout.astro";
+
+import Bg from '@assets/mascots/background.png';
+import Title from '@assets/mascots/Title.png';
+import ring from '@assets/mascots/ring.png';
+import ring_glow from '@assets/mascots/ring_glow.png';
+import ring_summoned from '@assets/mascots/ring_summoned.png';
+import summon_transition_flash from '@assets/mascots/summon_transition_flash.png';
+
+import FF_Summon from '@assets/mascots/FF_Summon.webp';
+import FF from '@assets/mascots/FF.png';
+import FF_boop from '@assets/mascots/FF_boop.png';
+import FF_nohat from '@assets/mascots/FF_nohat.png';
+import FF_nohat_boop from '@assets/mascots/FF_nohat_boop.png';
+import FF_outfit from '@assets/mascots/FF_outfit.png';
+import FF_outfit_boop from '@assets/mascots/FF_outfit_boop.png';
+
+import FR_Summon from '@assets/mascots/FR_Summon.webp';
+import FR from '@assets/mascots/FR.png';
+import FR_boop from '@assets/mascots/FR_boop.png';
+import FR_nude from '@assets/mascots/FR_nude.png';
+import FR_nude_boop from '@assets/mascots/FR_nude_boop.png';
+import FR_outfit from '@assets/mascots/FR_outfit.png';
+import FR_outfit_boop from '@assets/mascots/FR_outfit_boop.png';
+
+import MA_Summon from '@assets/mascots/MA_Summon.webp';
+import MA from '@assets/mascots/MA.png';
+import MA_boop from '@assets/mascots/MA_boop.png';
+import MA_Goth from '@assets/mascots/MA_Goth.png';
+import MA_Goth_Boop from '@assets/mascots/MA_Goth_Boop.png';
+import MA_outfit from '@assets/mascots/MA_outfit.png';
+import MA_outfit_boop from '@assets/mascots/MA_outfit_boop.png';
+
+import MM_Summon from '@assets/mascots/MM_Summon.webp';
+import MM from '@assets/mascots/MM.png';
+import MM_boop from '@assets/mascots/MM_boop.png';
+import MM_noglasses from '@assets/mascots/MM_noglasses.png';
+import MM_noglasses_boop from '@assets/mascots/MM_noglasses_boop.png';
+import MM_outfit from '@assets/mascots/MM_outfit.png';
+import MM_outfit_boop from '@assets/mascots/MM_outfit_boop.png';
+
+import SO_Summon from '@assets/mascots/SO_Summon.webp';
+import SO from '@assets/mascots/SO.png';
+import SO_boop from '@assets/mascots/SO_boop.png';
+import SO_goth from '@assets/mascots/SO_goth.png';
+import SO_goth_boop from '@assets/mascots/SO_goth_boop.png';
+import SO_outfit from '@assets/mascots/SO_outfit.png';
+import SO_outfit_boop from '@assets/mascots/SO_outfit_boop.png';
+
+import change_clothes_button from '@assets/mascots/change_clothes_button.png';
+
+import dialog_desktop from '@assets/mascots/dialog_desktop.png';
+import dialog_mobile from '@assets/mascots/dialog_mobile.png';
+
+const mares = [
+    {
+        id: "fairflyer",
+        name: "Fair Flyer",
+        description:
+            ` Fair Flyer is nothing short of a maestro in her field, constantly seeking opportunities to put on spectacular conventions for scores of ponies to enjoy. Her special talent shines in getting events off the ground, transforming mere gatherings into memorable experiences that resonate deeply with everypony within a ten nautical mile radius. Soaring with boundless passion and backed by a hoof-picked team of con-loving ponies, she's committed to organizing an unforgettable get-together that'll certainly be the talk of the town!
+              The sight of ponies thoroughly reveling in the moment, radiating genuine happiness, is what sets her world alight, fueling her eagerness to bring Mare Fair back this year. With her unwavering determination, she's returning to Orlando to craft enduring memories that will linger long in the hearts of all who attend!
+            `,
+        summon: FF_Summon,
+        boopBox: ["11.5%", "16%"],
+        default: FF,
+        default_boop: FF_boop,
+        alt: FF_nohat,
+        alt_boop: FF_nohat_boop,
+        alt2: FF_outfit,
+        alt2_boop: FF_outfit_boop,
+    },
+    {
+        id: "soiree",
+        name: "Soirée",
+        description:
+            ` Soirée might always look like she'd rather be elsewhere, but there's much more to the earth pony than meets the eye. Far more reserved compared to Matinée, her twin sister, she tends to adopt a sardonic and somewhat angsty perspective on things. Her way of speaking her mind is as blunt as a hammer, and it doesn't quite match the grace her name suggests. Yet, beneath her seemingly intimidating exterior lies a mare brimming with passion. She'll try to hide it, but at the heart of it all, she adores performing. In time, you'll notice her as the one singing with the most vigor or dancing with the greatest joy at any party.
+              Her cosplay isn't a bid for attention—it's a form of genuine self-expression. When she accompanies Fair Flyer to events, that's when her true brilliance shines through.
+            `,
+        summon: SO_Summon,
+        boopBox: ["11.5%", "55%"],
+        default: SO,
+        default_boop: SO_boop,
+        alt: SO_goth,
+        alt_boop: SO_goth_boop,
+        alt2: SO_outfit,
+        alt2_boop: SO_outfit_boop,
+    },
+    {
+        id: "matinee",
+        name: "Matinée",
+        description:
+            ` Matinée is a bubbly pegasus with a passion for cosplay! She loves putting on a show and spreading joy with her creative outfits. Ever the excitable mare, she savors the fun and cherishes the moments when she succeeds in getting somepony to break out of their shell. Occasionally, she can go a bit overboard, impulsively putting anypony into the limelight, but her intentions are always pure and kind-hearted.
+              Alongside her twin sister, Soirée, she's always there to assist her good friend, Fair Flyer, with various events. These occasions are perfect for her to bring happy smiles and show off her array of dazzling costumes!
+            `,
+        summon: MA_Summon,
+        boopBox: ["9%", "53%"],
+        default: MA,
+        default_boop: MA_boop,
+        alt: MA_Goth,
+        alt_boop: MA_Goth_Boop,
+        alt2: MA_outfit,
+        alt2_boop: MA_outfit_boop,
+    },
+    {
+        id: "morningmimosa",
+        name: "Morning Mimosa",
+        description:
+            ` Hailing from the sunny state of Florida, Morning Mimosa is set to help host another unforgettable extravaganza right in her own backyard — a fourth Mare Fair! A charming blend of nerdy and eccentric, this earth pony can be a real hoof-ful. Don't be fooled by her unassuming appearance, though! Beneath her seemingly reserved exterior is a true wild card, ever ready to dive into unforeseen adventures (which she'll undoubtably ramble on about for months on end). To put it briefly, if somepony offered her 20 bucks to wrestle a gator...
+              She's getting that 20 bucks.
+              Around others, she's unmistakably the nerd that everypony's already familiar with. But once the lights dim and the festivities commence, prepare to be captivated by an entirely different mare...
+            `,
+        summon: MM_Summon,
+        boopBox: ["21%", "17%"],
+        default: MM,
+        default_boop: MM_boop,
+        alt: MM_noglasses,
+        alt_boop: MM_noglasses_boop,
+        alt2: MM_outfit,
+        alt2_boop: MM_outfit_boop,
+    },
+    {
+        id: "funraiser",
+        name: "Fun Raiser",
+        description:
+            ` Fun Raiser only recently joined our menagerie of mascots, but she’s come swinging out the gate with helping hooves and optimism to spare!
+              Specializing in connecting ponies who need things with others who can provide them, she’s quickly shown how talented she is and become a core part of the group. Ever eager to satisfy, while also showing off just how skilled she is, Fun Raiser can pull together strings like no other.
+              When the ruckus revives for late night parties, she unknowingly turns out to be quite the bartender! Albeit she doesn’t have any real experience throwing together drinks, she can mix up a cocktail like a seasoned mixologist—even if she simply giggles at her nickname “Bar Mare”
+            `,
+        summon: FR_Summon,
+        boopBox: ["12%", "53%"],
+        default: FR,
+        default_boop: FR_boop,
+        alt: FR_nude,
+        alt_boop: FR_nude_boop,
+        alt2: FR_outfit,
+        alt2_boop: FR_outfit_boop,
+    }
+]
+---
+<Layout title="Mascots | Mare Fair 2026">
+    <input type="radio" id="pony_main" name="pony_selection" class="hidden" checked>
+
+    {mares.map((item, index) => (
+        <input type="radio" id={item.id} name="pony_selection" class="hidden">
+        <input type="radio" id={`${item.id}_default`} name={`pony_selection_skin_${item.id}`} class="hidden" checked>
+        <input type="radio" id={`${item.id}_alt`} name={`pony_selection_skin_${item.id}`} class="hidden">
+        <input type="radio" id={`${item.id}_alt2`} name={`pony_selection_skin_${item.id}`} class="hidden">
+    ))}
+
+    <label id="back" for="pony_main" class="w-full h-full absolute hidden"/>
+
+    <div id="wrapper" class="flex items-center justify-center min-h-screen bg-[#180127] pointer-events-none">
+        <div id="background" class="w-fit h-fit absolute transition-transform duration-300 md:scale-100 scale-60">
+            <Image src={Bg} alt="" width={1920} class="relative max-w-none" inert/>
+            <div id="header" class="absolute center-horizontally center-vertically w-screen h-screen max-w-[1920px] max-h-[1080px] mt-0 transition-all duration-300">
+                <Image src={Title} alt="Mascots" width={600} class="mx-auto md:mt-5 -mt-[25%]" inert/>
+            </div>
+            <div id="ringWrapper" class="absolute bottom-22/100 center-horizontally scale-125">
+                <Image src={ring_glow} format="avif" alt="" width={1300} class="relative animate-[opacity-glow_2s_ease-in-out_infinite]"  inert/>
+                <Image src={ring} format="avif" alt="" width={1300} class="absolute -bottom-4 opacity-20"  inert/>
+                <Image src={ring} format="avif" alt="" width={1300} class="absolute bottom-0 animate-[sine-wave2_2s_ease-in-out_infinite]"  inert/>
+                <Image src={ring_summoned} format="avif" alt="" width={1300} id="summon_ring" class="absolute bottom-0 animate-[sine-wave2_2s_ease-in-out_infinite] opacity-10 transition-opacity duration-300" inert/>
+
+                {mares.map((item, index) => (
+                    <div id={`modal_${item.id}`} class="mascot absolute center-horizontally pb-190 center-vertically animate-[sine-wave2_2s_ease-in-out_infinite] hidden scale-75">
+                        <div tabindex="0" aria-label="Boop the mare!" class="boop-box rounded-full cursor-pointer w-[25%] aspect-square absolute pointer-events-auto z-10" style={`top: ${item.boopBox[0]}; left:${item.boopBox[1]}`}/>
+                        <div id={`modal_${item.id}_default`}>
+                            <Image src={item.default} format="avif" alt="" height={800} class="mare max-w-none" inert/>
+                            <Image src={item.default_boop} format="avif" alt="" height={800} class="mare-boop max-w-none absolute top-0" style="content-visibility: hidden"  inert/>
+                        </div>
+                        <div id={`modal_${item.id}_alt`} class="hidden">
+                            <Image src={item.alt} format="avif" alt="" height={800} class="mare max-w-none" inert/>
+                            <Image src={item.alt_boop} format="avif" alt="" height={800} class="mare-boop max-w-none absolute top-0" style="content-visibility: hidden"  inert/>
+                        </div>
+                        <div id={`modal_${item.id}_alt2`} class="hidden">
+                            <Image src={item.alt2} format="avif" alt="" height={800} class="mare max-w-none" inert/>
+                            <Image src={item.alt2_boop} format="avif" alt="" height={800} class="mare-boop max-w-none absolute top-0" style="content-visibility: hidden"  inert/>
+                        </div>
+                    </div>
+                ))}
+
+                <Image src={summon_transition_flash} format="avif" width={1300} alt="" class="flash-img absolute bottom-0 opacity-0" inert/>
+            </div>
+
+            <div id="Summon" class="absolute md:bottom-35/100 bottom-37/100 center-horizontally md:w-45/100 w-screen md:h-35/100 h-25/100 md:scale-100 scale-170 transition-all pointer-events-auto">
+                <div class="fire-ball top-0 left-0 animate-[sine-wave2_2s_ease-in-out_0.5s_infinite]">
+                    <Image src={mares[0].summon} alt="" width={400} inert/>
+                    <label tabindex="0" aria-label={`Summon ${mares[0].name}`} for={mares[0].id} class="absolute bottom-0 left-15/100 rounded-full w-2/3 aspect-square cursor-pointer"/>
+                </div>
+                <div class="fire-ball top-0 right-0 animate-[sine-wave3_2.5s_ease-in-out_0.3s_infinite]">
+                    <Image src={mares[1].summon} alt="" width={400} inert/>
+                    <label tabindex="0" aria-label={`Summon ${mares[1].name}`} for={mares[1].id} class="absolute bottom-0 left-15/100 rounded-full w-2/3 aspect-square cursor-pointer"/>
+                </div>
+                <div class="fire-ball bottom-0 md:left-10/100 left-0 animate-[sine-wave2_2.5s_ease-in-out_1s_infinite]">
+                    <Image src={mares[2].summon} alt="" width={400} inert/>
+                    <label tabindex="0" aria-label={`Summon ${mares[2].name}`} for={mares[2].id} class="absolute bottom-0 left-15/100 rounded-full w-2/3 aspect-square cursor-pointer"/>
+                </div>
+                <div class="fire-ball bottom-0 md:right-10/100 right-0 animate-[sine-wave3_2s_ease-in-out_0.4s_infinite]">
+                    <Image src={mares[3].summon} alt="" width={400} inert/>
+                    <label tabindex="0" aria-label={`Summon ${mares[3].name}`} for={mares[3].id} class="absolute bottom-0 left-15/100 rounded-full w-2/3 aspect-square cursor-pointer"/>
+                </div>
+                <div class="fire-ball bottom-30/100 center-horizontally animate-[sine-wave2_2.5s_ease-in-out_1.5s_infinite]">
+                    <Image src={mares[4].summon} alt="" width={400} inert/>
+                    <label tabindex="0" aria-label={`Summon ${mares[4].name}`} for={mares[4].id} class="absolute bottom-0 left-15/100 rounded-full w-2/3 aspect-square cursor-pointer"/>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-wrapper" class="w-screen h-screen absolute top-0 left-0 pointer-events-none md:translate-x-[20%] translate-x-0 md:translate-y-0 translate-y-[20%] transition-transform duration-300 merriweather-sans-bold">
+
+        {mares.map((item, index) => (
+        <div id={`modal_${item.id}`} class="absolute center-horizontally md:center-vertically top-auto md:bottom-auto bottom-0 translate-y-0 max-w-screen max-h-screen h-[1080px] w-[1920px] hidden">
+            <div class="absolute md:top-0 bottom-5 right-0 w-fit h-fit pointer-events-auto">
+                <Image src={dialog_desktop} format="avif" alt="" height={1080} class="max-h-screen w-auto aspect-2070/3660 md:block hidden" inert/>
+                <Image src={dialog_mobile} format="avif" alt="" width={768} class="max-h-screen w-auto aspect-3700/2070 md:hidden block" inert/>
+
+                <div class="absolute inset-0 md:p-[10%] p-[5%] md:pr-[7%] pr-[5%] text-white flex flex-col">
+                    <p class="md:text-7xl text-4xl text-center md:mb-[5%] mb-[2%] shrink-0 germania-one-regular"> {item.name} </p>
+                    <div class="overflow-y-auto min-h-0 flex-1">
+                        {item.description
+                            .split('\n')
+                            .map(line => line.trim())
+                            .filter(line => line.length > 0)
+                            .map(line => (
+                                <div class="mt-4 md:text-xl indent-12">{line}</div>
+                            ))
+                        }
+                    </div>
+                </div>
+                <div class="absolute md:bottom-0 top-[5%] md:top-auto md:right-0 right-[5%] w-24 hover:scale-105 transition-all">
+                    <label tabindex="0" for={`${item.id}_alt`} class="absolute top-0 left-0 cycle-default w-full h-full cursor-pointer block"/>
+                    <label tabindex="0" for={`${item.id}_alt2`} class="absolute top-0 left-0 cycle-alt w-full h-full cursor-pointer hidden"/>
+                    <label tabindex="0" for={`${item.id}_default`} class="absolute top-0 left-0 cycle-alt2 w-full h-full cursor-pointer hidden"/>
+                    <Image src={change_clothes_button} format="avif" alt="" width={200} inert/>
+                </div>
+            </div>
+        </div>
+        ))}
+
+    </div>
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+    @keyframes sine-wave2 {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+    @keyframes sine-wave3 {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-5px);
+        }
+    }
+    @keyframes flash {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+    @keyframes wiggle {
+        0%, 100% { transform: rotate(0)}
+        50% { transform: rotate(10deg)}
+    }
+
+    @keyframes opacity-glow {
+        0%, 100% {
+            opacity: 100%;
+        }
+        50% {
+            opacity: 50%;
+        }
+    }
+
+    .cycle-default:active ~ img,
+    .cycle-alt:active ~ img,
+    .cycle-alt2:active ~ img {
+        animation: wiggle 0.1s ease-in-out;
+        animation-fill-mode: forwards;
+    }
+
+    .center-horizontally{
+        @apply right-1/2 translate-x-1/2;
+    }
+    .center-vertically{
+        @apply top-1/2 -translate-y-1/2;
+    }
+
+    .boop-box:hover ~ div img {
+        filter: drop-shadow(0 0 20px rgba(255, 200, 255, 0.9));
+    }
+
+    .mare {
+        transition: filter 0.3s ease;
+    }
+
+    .fire-ball {
+        @apply absolute transition-all w-35/100 min-w-50 transition-[filter] hover:drop-shadow-[0_0_15px_rgba(256,256,256,0.5)] duration-300
+    }
+</style>
+
+<script>
+    function preloadAudio(id: string): Promise<void>
+    {
+        return new Promise((resolve) => {
+            const element = new Audio(id);
+            element.load();
+            element.oncanplaythrough = () => resolve();
+        });
+    }
+
+    let pageController: AbortController | null = null;
+
+    document.addEventListener("astro:page-load", () =>
+    {
+        // Abort any listeners registered by a previous page-load, then get a fresh signal
+        pageController?.abort();
+        pageController = new AbortController();
+        const { signal } = pageController;
+
+        // ACCESSIBILITY:
+        document.querySelectorAll<HTMLLabelElement>('label[tabindex="0"]').forEach(label => {
+            label.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault(); // Prevent page scroll on Space
+                    label.click();
+                }
+            }, { signal });
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const el = document.getElementById('pony_main') as HTMLInputElement;
+                if (el) {
+                    el.checked = true;
+                    el.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }
+        }, { signal });
+
+        preloadAudio("/mascots/Squee.ogg");
+
+        // Boop interaction
+        const BOOPS_REQUIRED = 10; // Change for debugging
+
+        const boopBoxes = document.querySelectorAll<HTMLElement>('.boop-box');
+
+        // Per-mascot boop counts, reset each page load
+        const boopCounts: Record<string, number> = {};
+
+        // ACHIEVEMENT: unlock "boop" when every mascot has been booped BOOPS_REQUIRED times
+        const checkBoopAchievement = () => {
+            if (window.steamAchievements.isUnlocked('broken_snoots')) return;
+            const allDone = Array.from(boopBoxes).every((box) => {
+                const mascot = box.closest('.mascot') as HTMLElement;
+                const id = mascot?.id?.replace(/^modal_/, '');
+                const count = boopCounts[id] ?? 0;
+                return count >= BOOPS_REQUIRED;
+            });
+            if (allDone) {
+                console.log('UNLOCK');
+                window.steamAchievements.unlock('broken_snoots');
+            }
+        };
+
+        boopBoxes.forEach((box) => {
+            const mascot = box.closest('.mascot') as HTMLElement;
+            const mascotId = mascot?.id?.replace(/^modal_/, '');
+
+            const squee = new Audio('/mascots/Squee.ogg');
+
+            const startBoop = () => {
+                mascot?.querySelectorAll<HTMLElement>('.mare').forEach(el =>
+                    el.style.setProperty('content-visibility', 'hidden')
+                );
+                mascot?.querySelectorAll<HTMLElement>('.mare-boop').forEach(el =>
+                    el.style.removeProperty('content-visibility')
+                );
+                squee.currentTime = 0;
+                squee.play();
+
+                if (mascotId) {
+                    boopCounts[mascotId] = (boopCounts[mascotId] ?? 0) + 1;
+                    console.log(mascotId + ": " + boopCounts[mascotId]);
+                    checkBoopAchievement();
+                }
+            };
+
+            const endBoop = () => {
+                mascot?.querySelectorAll<HTMLElement>('.mare').forEach(el =>
+                    el.style.removeProperty('content-visibility')
+                );
+                mascot?.querySelectorAll<HTMLElement>('.mare-boop').forEach(el =>
+                    el.style.setProperty('content-visibility', 'hidden')
+                );
+            };
+
+            box.addEventListener('mousedown', startBoop, { signal });
+            box.addEventListener('touchstart', startBoop, { passive: true, signal });
+
+            // End on mouseup/touchend anywhere, in case cursor leaves the box
+            document.addEventListener('mouseup', endBoop, { signal });
+            document.addEventListener('touchend', endBoop, { signal });
+
+            // Keyboard boop
+            box.setAttribute('tabindex', '0');
+            box.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    startBoop();
+                }
+            }, { signal });
+            box.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    endBoop();
+                }
+            }, { signal });
+        });
+    });
+</script>
+
+
+<style is:inline set:html={mares.map(item => `
+    /* Text Modal */
+    #${item.id}:checked ~ #screen-wrapper { --tw-translate-x: 0px; --tw-translate-y: 0px; translate: 0px 0px; }
+    #${item.id}:checked ~ #screen-wrapper #modal_${item.id} { display: block; }
+
+    /* Background */
+    #${item.id}:checked ~ #back { display: block; }
+    #${item.id}:checked ~ #wrapper #Summon { display: none; }
+    #${item.id}:checked ~ #wrapper #background { transform: translate(-11%, 0); }
+    @media (max-width: 767px) {
+        #${item.id}:checked ~ #wrapper #background { transform: translate(0, -8%); }
+    }
+    @media (max-width: 767px) {
+        #${item.id}:checked ~ #wrapper #header { margin-top: 8%; }
+    }
+    #${item.id}:checked ~ #wrapper #ringWrapper #summon_ring { opacity: 1; }
+    #${item.id}:checked ~ #wrapper .flash-img { animation: flash 0.5s ease-out forwards; }
+
+    /* Mascots */
+    #${item.id}:checked ~ #wrapper #modal_${item.id} { display: block; }
+
+    #${item.id}_alt:checked ~ #screen-wrapper #modal_${item.id} .cycle-default { display: none; }
+    #${item.id}_alt:checked ~ #screen-wrapper #modal_${item.id} .cycle-alt { display: block; }
+
+    #${item.id}_alt:checked ~ #wrapper #modal_${item.id} #modal_${item.id}_default { display: none; }
+    #${item.id}_alt:checked ~ #wrapper #modal_${item.id} #modal_${item.id}_alt { display: block; }
+
+    #${item.id}_alt2:checked ~ #screen-wrapper #modal_${item.id} .cycle-default { display: none; }
+    #${item.id}_alt2:checked ~ #screen-wrapper #modal_${item.id} .cycle-alt2 { display: block; }
+
+    #${item.id}_alt2:checked ~ #wrapper #modal_${item.id} #modal_${item.id}_default { display: none; }
+    #${item.id}_alt2:checked ~ #wrapper #modal_${item.id} #modal_${item.id}_alt2 { display: block; }
+`).join('\n')} />

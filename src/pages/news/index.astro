@@ -1,0 +1,10 @@
+---
+import ArticleIndex from '@layouts/ArticleIndex.astro';
+import { getCollection } from 'astro:content';
+
+const newsCollection = await getCollection('news') ?? [];
+---
+
+<ArticleIndex header=`Hear Ye!` title = "Articles | Mare Fair 2026" newsCollection={newsCollection} filterNavigation>
+
+</ArticleIndex>

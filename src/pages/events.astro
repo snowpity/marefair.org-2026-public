@@ -1,0 +1,345 @@
+---
+import { marked } from 'marked';
+import Prose from '@components/ProseEvents.astro';
+import { Image, getImage } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+import { Icon } from 'astro-icon/components'
+
+import cathedralBG from '@assets/events/Cathedral3Row.png'
+
+import MareGallery from '@assets/events/MareGallery.png'
+import MareGalleryPlaque from '@assets/events/Mare Gallery.png'
+import Charity from '@assets/events/CHARITY.png'
+import CharityPlaque from '@assets/events/Charity Auction.png'
+import Cosplay from '@assets/events/Cosplay.png'
+import CosplayPlaque from '@assets/events/Cosplay Contest.png'
+import Cinemare from '@assets/events/CINEMARENIGHT.png'
+import CinemarePlaque from '@assets/events/Cinemare night.png'
+import Tendies from '@assets/events/TENDIEGLASS.png'
+import TendiesPlaque from '@assets/events/Tendie.png'
+import Maredieval from '@assets/events/MAREDIEVALTIMES.png'
+import MaredievalPlaque from '@assets/events/Maredival Times.png'
+
+import PlushParty from '@assets/events/PlushParty.png'
+import PlushPartyPlaque from '@assets/events/PlushPlaque.png'
+import AnonfillyR from '@assets/events/AnonfillyR.png'
+import AnonfillyL from '@assets/events/AnonfillyL.png'
+
+import mobileTop from '@assets/events/mobile/mobileTop.png'
+import mobileMid from '@assets/events/mobile/mobileMid.png'
+import mobileBot from '@assets/events/mobile/mobileBot.png'
+
+import nun from '@assets/events/nun_mare.png'
+
+const imageWidth = 1920;
+const ratio = 360 / 1920;
+const glassWidth = imageWidth * ratio;
+
+// Utility to create slug names.
+const slugify = (name: string) => name.replace(/[^a-zA-Z0-9]+/g, '');
+
+const events = [
+    {
+        name: "Mare Gallery",
+        description: `
+The Mare Gallery brings together original traditional art pieces from talented creators across the realm, gathering their work into one gallery for all to admire.
+
+Some Mare Gallery pieces will be auctioned for charity on Sunday.
+
+* **Location:** [Mare Gallery (Orange Blossom)](/map#MareGallery)
+        `,
+        img: MareGallery,
+        imgPlaque: MareGalleryPlaque,
+    },
+    {
+        name: "Charity Auction",
+        description: `
+The grand auction hall fills with energy and friendly rivalry as attendees vie for unique collectibles and one-of-a-kind treasures, with every coin raised going directly to horse rescues. The treasures of the realm await their rightful owners!
+
+The Charity Auction listing will be posted here once available.
+
+* **Location:** [Mare Stage (Palm 1/2)](/map#MareStage)
+
+[Submit or view auction items](https://auction.marefair.org/)
+        `,
+        img: Charity,
+        imgPlaque: CharityPlaque,
+    },
+    {
+        name: "Cosplay Contest",
+        description:
+        `
+Matinée and Soirée, the realm's most devoted connoisseurs of raiment and finery, have thrown open the stage to all who dare to compete. Whether your costume is a months-long masterwork or a last-minute labor of love, every crafter has a place in this contest. Step into the spotlight, earn your applause, and walk away with unique prizes!
+
+* **Location:** [Mare Stage (Palm 1/2)](/map#MareStage)
+
+[Sign Up](/cosplay)
+        `,
+        img: Cosplay,
+        imgPlaque: CosplayPlaque,
+    },
+    {
+        name: "Cinemare Night",
+        description:
+        `
+Before the realm opens its gates and the festivities begin in earnest, gather with your fellow adventurers Thursday night for a screening of the beloved classic The Last Unicorn!
+
+The theatre only holds so many, so claim your seat in the stands early.
+
+* **Price:** $40
+* **Date:** August 27, 2026
+* **Time:** 10:00 PM
+* **Location:** Epic Theatres at Lee Vista
+* **Address:** [5901 Hazeltine National Dr, Orlando, FL 32822, USA](https://maps.app.goo.gl/bxGf8fUFjhFoCfsR7)
+* **Transportation:** provided at the [Shuttle Entrance](/map#ShuttleEntrance)
+
+[Register](https://cinemare.marefair.org/)
+        `,
+        img: Cinemare,
+        imgPlaque: CinemarePlaque,
+    },
+    {
+        name: "Spaghetti and Tendies Dinner",
+        description: `
+Mare Fair honors its most generous supporters with a seat at the royal banquet. The court's finest chefs have prepared something worthy of the occasion; join fellow sponsors and friends in the grand hall for a warm evening of hearty food and familiar faces. Included with Mare Connoisseur and above.
+
+One can purchase a seat to our banquet; each ticket contributes $40 to supporting our charities!
+
+In addition, custom embroidered napkins are available for purchase, which will also contribute to charities. One may purchase separately or together with the meal ticket.
+
+* **Price:** $40 a seat, $25 a napkin
+* **Date:** August 28, 2026
+* **Time:** 7:00-10:00PM
+* **Location:** [Dark Lord Anon's OC Dungeon (Grand IV/V)](/map#DarkLordAnon'sOCDungeon)
+
+[Register](https://tendies.marefair.org/)
+        `,
+        img: Tendies,
+        imgPlaque: TendiesPlaque,
+    },
+    {
+        name: "Maredival Times",
+        description:
+        `
+Few quests are as worthy as this one! Travel offsite Monday with your fellow attendees to Medieval Times, claim your seat among likeminded fanatics in our very own section of the royal arena, and cheer on the finest mares in the land as they joust in your honor.
+
+Spots are limited, secure yours before the gates close:
+
+* **Price:** $120
+* **Date:** August 31, 2026
+* **Time:** 6:00 PM
+* **Location:** Medieval Times Dinner & Tournament
+* **Address:** [4510 W Vine St, Kissimmee, FL 34746, USA](https://maps.app.goo.gl/jeJ2P2uPCrWcSnJS9)
+* **Transportation:** provided at the [Shuttle Entrance](/map#ShuttleEntrance)
+
+[Register](https://maredival.marefair.org/)
+        `,
+        img: Maredieval,
+        imgPlaque: MaredievalPlaque,
+    },
+    {
+        name: "Mimosa and Fair Flyer's Plushie Apothecary",
+        description:
+        `
+Bout of plague that won't go away? Untreated sword wound? What about your plushie companion? Trot down the cobblestone road into the apothecary and grab yourself a plush remedy from the cauldron! Perhaps some ground unicorn horn or the feathers of a deceased pegasus? A sweet roll?
+
+Plushie treats (not for anon consumption) and accessories will be available (included in ticket). All proceeds go to charity!
+
+Spots are limited, secure yours before the gates close:
+
+* **Price:** $10 per seat
+* **Date:** TBD
+* **Location:** [Sunbeam Sanctum (TBD, Dogwood/Camellia)](map/#SunbeamSanctum)
+
+[Register](https://www.zeffy.com/en-US/ticketing/morning-mimosa-and-fair-flyers-plushie-apothecary)
+        `,
+        img: PlushParty,
+        imgPlaque: PlushPartyPlaque,
+    },
+]
+---
+
+<Layout title="Events | Mare Fair 2026">
+    <input type="radio" id="events-default" name="events-selected" class="hidden" checked/>
+    {events.map((event) => (
+        <input type="radio" id={`events-${slugify(event.name)}`} name="events-selected" class="hidden"/>
+    ))}
+
+    <div class="hidden sm:flex relative overflow-hidden w-full h-auto justify-center items-center" style={`--img-width: ${imageWidth}px`}>
+        <Image src={cathedralBG} format="avif" alt="" width={imageWidth} class="max-w-none brightness-70 md:w-[1920px] w-[1000px]" inert/>
+
+        <div class="absolute top-[25.5%] md:w-[900px] w-[480px] h-[46%] md:translate-x-[3px] translate-x-[7px]">
+            <div class="flex flex-row justify-between">
+                {[
+                    { event: events[0], img: MareGallery, plaque: MareGalleryPlaque },
+                    { event: events[1], img: Charity,     plaque: CharityPlaque },
+                    { event: events[2], img: Cosplay,     plaque: CosplayPlaque },
+                ].map(({ event, img, plaque }) => (
+                <label for={`events-${slugify(event.name)}`} tabindex="0" role="button" aria-label={`View ${event.name} details`} class="gallery-item md:w-[31.9%] w-auto relative cursor-pointer">
+                    <Image src={img} format="avif" alt="" width={glassWidth} class="image main-image" inert/>
+                    <Image src={img} format="avif" alt="" width={glassWidth} class="image glow-image" inert/>
+                    <div class="relative">
+                        <Image src={plaque} format="avif" alt="" width={glassWidth} class="image main-image" inert/>
+                        <Image src={plaque} format="avif" alt="" width={glassWidth} class="image glow-image !scale-y-130" inert/>
+                    </div>
+                </label>
+                ))}
+            </div>
+
+            <div class="flex flex-row justify-between">
+                {[
+                    { event: events[3], img: Cinemare,  plaque: CinemarePlaque },
+                    { event: events[4], img: Tendies,   plaque: TendiesPlaque },
+                    { event: events[5], img: Maredieval, plaque: MaredievalPlaque },
+                ].map(({ event, img, plaque }) => (
+                <label for={`events-${slugify(event.name)}`} tabindex="0" role="button" aria-label={`View ${event.name} details`} class="gallery-item md:w-[31.9%] w-auto relative cursor-pointer">
+                    <Image src={img} format="avif" alt="" width={glassWidth} class="image main-image" inert/>
+                    <Image src={img} format="avif" alt="" width={glassWidth} class="image glow-image" inert/>
+                    <div class="relative">
+                        <Image src={plaque} format="avif" alt="" width={glassWidth} class="image main-image" inert/>
+                        <Image src={plaque} format="avif" alt="" width={glassWidth} class="image glow-image !scale-y-130" inert/>
+                    </div>
+                </label>
+                ))}
+            </div>
+
+            <div class="flex flex-row justify-between -mt-[1%]">
+                <div class="gallery-item md:w-[31.9%] w-auto relative">
+                    <Image src={AnonfillyR} format="avif" alt="" width={glassWidth} class="image relative brightness-75 z-20" inert/>
+                </div>
+                <label for={`events-${slugify(events[6].name)}`} tabindex="0" role="button" aria-label={`View ${events[6].name} details`} class="gallery-item md:w-[31.9%] w-auto relative cursor-pointer">
+                    <Image src={events[6].img} format="avif" alt="" width={glassWidth} class="image main-image" inert/>
+                    <Image src={events[6].img} format="avif" alt="" width={glassWidth} class="image glow-image" inert/>
+                    <div class="relative">
+                        <Image src={events[6].imgPlaque} format="avif" alt="" width={glassWidth} class="image main-image" inert/>
+                        <Image src={events[6].imgPlaque} format="avif" alt="" width={glassWidth} class="image glow-image !scale-y-130" inert/>
+                    </div>
+                </label>
+                <div class="gallery-item md:w-[31.9%] w-auto relative">
+                    <Image src={AnonfillyL} format="avif" alt="" width={glassWidth} class="image relative brightness-75 z-20" inert/>
+                </div>
+            </div>
+        </div>
+
+        <div class="absolute top-0 imgWidth h-full min-h-[100lvh] center-horizontally pointer-events-none">
+            <div class="absolute top-0 left-0 w-[320px] h-full -translate-x-[calc(100%-320px)] bg-gradient-to-l from-transparent to-black pointer-events-none before:content-[''] before:absolute before:top-0 before:right-full before:w-screen before:h-full before:bg-black"></div>
+            <div class="absolute top-0 right-0 w-[320px] h-full translate-x-[calc(100%-320px)] bg-gradient-to-r from-transparent to-black pointer-events-none before:content-[''] before:absolute before:top-0 before:left-full before:w-screen before:h-full before:bg-black"></div>
+        </div>
+        <div class="absolute lg:w-[1900px] md:w-[1200px] w-[480px] h-full" inert>
+            <Image src={nun} format="avif" width={600} alt="" class="absolute md:w-auto w-[200px] bottom-[-5%] md:right-[-5%] right-[5%] transition-all drop-shadow-xl/100"/>
+        </div>
+    </div>
+
+    <div id="mobile" class="sm:hidden relative w-full h-auto flex flex-col justify-center items-center z-0">
+        <div class="relative">
+            <Image src={mobileTop} format="avif" alt="" width={imageWidth} class="max-w-none brightness-70 w-full" inert/>
+            <label for={`events-${slugify(events[0].name)}`} tabindex="0" role="button" aria-label={`View ${events[0].name} details`} class="gallery-item absolute top-[46.5%] left-[12.5%] cursor-pointer w-[75%]">
+                <Image src={events[0].img} format="avif" alt="" width={imageWidth} class="image-mobile main-image" inert/>
+                <Image src={events[0].img} format="avif" alt="" width={glassWidth} class="image-mobile glow-image" inert/>
+                <div class="relative mt-[2.5%]">
+                    <Image src={events[0].imgPlaque} format="avif" alt="" width={640} class="image-mobile main-image" inert/>
+                    <Image src={events[0].imgPlaque} format="avif" alt="" width={640} class="image glow-image !scale-y-130" inert/>
+                </div>
+            </label>
+        </div>
+
+        {events.slice(1).map((event, index) => (
+        <div class="relative">
+            <Image src={mobileMid} format="avif" alt="" width={imageWidth} class="max-w-none brightness-70 w-full" inert/>
+            <label for={`events-${slugify(event.name)}`} tabindex="0" role="button" aria-label={`View ${event.name} details`} class="gallery-item absolute top-[11.7%] left-[12.5%] cursor-pointer w-[75%]">
+                <Image src={event.img} format="avif" alt="" width={imageWidth} class="image-mobile main-image" inert/>
+                <Image src={event.img} format="avif" alt="" width={glassWidth} class="image-mobile glow-image" inert/>
+                <div class="relative mt-[2.5%]">
+                    <Image src={event.imgPlaque} format="avif" alt="" width={640} class="image-mobile main-image" inert/>
+                    <Image src={event.imgPlaque} format="avif" alt="" width={640} class="image glow-image !scale-y-130" inert/>
+                </div>
+            </label>
+        </div>
+        ))}
+
+        <Image src={mobileBot} format="avif" alt="" width={imageWidth} class="max-w-none brightness-70 w-full" inert/>
+
+    </div>
+
+    {events.map((event) => ( /* Modal, to be shared with both desktop and mobile mode*/
+    <div id={`events-selected-${slugify(event.name)}`} class="pointer-events-none fixed w-screen h-screen top-0 opacity-0 transition-opacity backdrop-blur-sm duration-300 flex justify-center items-center">
+        <label tabindex="-1" role="button" aria-label="Close and return to events" for="events-default" class="absolute cursor-pointer bg-black/70 w-full h-full top-0 left-0"/>
+        <div class="md:w-3/4 md:h-3/4 w-4/5 h-4/5 bg-slate-950 rounded-2xl lg:p-10 p-2 z-10 flex lg:flex-row flex-col overflow-none overflow-y-scroll">
+            <Image src={event.img} format="avif" alt="" width={glassWidth} class="lg:h-full lg:w-auto sm:w-2/3 w-full mx-auto h-auto object-contain sm:px-0 px-[20%] flex-shrink-0"/>
+
+            <div class="text-white lg:ml-10 ml-none lg:mx-0 mx-2 lg:mt-none lg:mt-0 mt-10 lg:overflow-y-scroll overflow-none">
+                <center><h1 class="lg:text-6xl text-5xl germania-one-regular"> {event.name} </h1></center>
+                <Prose>
+                    <div set:html={marked.parse(event.description)} class="content text-white"></div>
+                </Prose>
+            </div>
+        </div>
+    </div>
+    ))}
+
+
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+    .center-horizontally{
+        @apply left-1/2 -translate-x-1/2;
+    }
+    .gallery-item {
+        @apply hover:z-50;
+    }
+
+    .image {
+        @apply md:w-full w-[93.5%] duration-300 transition-[opacity,filter];
+    }
+    .image-mobile {
+        @apply md:w-full duration-300 transition-[opacity,filter];
+    }
+
+    .gallery-item .main-image {
+        @apply relative brightness-75 z-20;
+    }
+
+    .gallery-item .glow-image {
+        @apply absolute top-0 left-0 blur-3xl opacity-0 brightness-150 scale-110 z-10;
+    }
+
+    .gallery-item:hover .glow-image {
+        @apply opacity-100;
+    }
+    .gallery-item:hover .main-image {
+        @apply brightness-100;
+    }
+    .imgWidth{
+        width: var(--img-width);
+        max-width: var(--img-width);
+        min-width: var(--img-width);
+    }
+</style>
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        const defaultRadio = document.getElementById('events-default') as HTMLInputElement;
+        const eventRadios = document.querySelectorAll('input[name="events-selected"]:not(#events-default)');
+
+        const updateInert = () => {
+            // no container to inert here, but Escape still needs to work
+        };
+
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && defaultRadio && !defaultRadio.checked) {
+                defaultRadio.checked = true;
+                defaultRadio.dispatchEvent(new Event('change'));
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+    });
+</script>
+
+<style is:inline set:html={events.map((event) => `
+    #events-${slugify(event.name)}:checked ~ #events-selected-${slugify(event.name)} {
+        pointer-events: auto;
+        opacity: 1;
+    }
+`).join('\n')} />

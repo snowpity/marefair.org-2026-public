@@ -1,0 +1,13 @@
+---
+import { Icon } from 'astro-icon/components'
+---
+
+<div id="hamburger_menu" class="fixed w-[100lvw] h-[100dvh] z-999999 pointer-events-none">
+    <a href="/" aria-labelledby="home-title"  class="w-14 h-14 m-2 rounded-md bg-black/50 hover:bg-black transition-colors text-white cursor-pointer fixed top-0 left-0 flex items-center justify-center pointer-events-auto">
+        <Icon name="mdi:home" class="text-5xl" title="Home"/>
+        <div id="home-title" class="hidden">Home</div>
+    </a>
+</div>
+<style>
+    @reference "tailwindcss";
+</style>

@@ -1,0 +1,137 @@
+---
+import { Image, getImage } from 'astro:assets';
+import TilingScroll from '@components/TilingScroll.astro';
+import BgParallaxSimple from '@components/BgParallaxSimple.astro';
+import Layout from '@layouts/Layout.astro';
+
+import { marked } from 'marked';
+import Prose from '@components/Prose.astro';
+const allPolicies = [
+    {
+        'title': 'Code of Conduct',
+        'anchor': 'code-of-conduct',
+        'file': 'Code of Conduct.md',
+    },
+    {
+        'title': 'Terms of Sale',
+        'anchor': 'terms-of-sale',
+        'file': 'Terms of Sale.md',
+    },
+    {
+        'title': 'Press Policies',
+        'anchor': 'press-policies',
+        'file': 'Press Policies.md',
+    },
+    {
+        'title': 'Staff Policies',
+        'anchor': 'staff-policies',
+        'file': 'Staff Policies.md',
+    },
+    {
+        'title': 'Vendor Policies',
+        'anchor': 'vendor-policies',
+        'file': 'Vendor Policies.md',
+    },
+]
+const anchors = new Map<string, string>();
+for (const policy of allPolicies) {
+  anchors.set(encodeURI(policy.file), `#${policy.anchor}`);
+}
+const allAnchors = new RegExp(Array.from(anchors.keys()).join('|'), 'g')
+
+const rawUrl = 'https://raw.githubusercontent.com/snowpity/Mare-Fair-Policies/refs/heads/master';
+
+const files = new Map<string, Promise<Response>>();
+for (const policy of allPolicies) {
+  files.set(policy.file, fetch(`${rawUrl}/${policy.file}`));
+}
+
+
+const texts = new Map<string, string>();
+for (const policy of allPolicies) {
+  const response = await files.get(policy.file);
+  if (response === undefined ) continue;
+  texts.set(policy.file, await response.text());
+}
+
+const relinkedTexts = new Map<string, string>();
+const replacer = (match: string, _value: string): string => anchors.get(match) ?? '';
+texts.forEach((value: string, key: string) => {
+  relinkedTexts.set(key, value.replace(allAnchors, replacer));
+})
+
+const renderedPolicies: {title: string, anchor: string, html: string|Promise<string>}[] = [];
+for (const policy of allPolicies) {
+  const relinkedText = relinkedTexts.get(policy.file);
+  if (relinkedText === undefined) continue;
+  renderedPolicies.push({
+    'title': policy.title,
+    'anchor': policy.anchor,
+    'html': marked.parse(relinkedText),
+  });
+}
+
+import bg from "@assets/COC/bg.png";
+const ratio = 15739/6300;
+const width = 3840;
+const height = width / ratio;
+
+import DungeonMare from "@assets/COC/DungeonMare.png";
+---
+<Layout title="Code of Conduct | Mare Fair 2026">
+    <BgParallaxSimple imgSrc={bg} imageHeight={height} imageWidth={width} sideVignette/>
+    <TilingScroll navigation={renderedPolicies} hasOpacitySwitch>
+
+        <Prose>
+        {renderedPolicies.map((policy) => (
+            <>
+                {policy.anchor === "terms-of-sale" && (
+                    <Image src={DungeonMare} width={720} alt="This mare will come for you" class="w-3/5 mx-auto"/>
+                )}
+                <a href={`#${policy.anchor}`} class="no-underline">
+                    <h2 id={policy.anchor}>
+                        {policy.title}
+                    </h2>
+                </a>
+                <div set:html={policy.html} class="content"></div>
+            </>
+        ))}
+        </Prose>
+    </TilingScroll>
+</Layout>
+
+
+<script>
+    document.addEventListener("astro:page-load", () => {
+        const isCoCPage = window.location.pathname === '/coc/' || window.location.pathname === '/coc';
+        // ACHIEVEMENT: Read the Code of Conduct
+        if (isCoCPage && window.steamAchievements && !window.steamAchievements.isUnlocked('code_of_conduct')) {
+            function checkScrollToBottom() {
+                // Double-check we're still on the CoC page
+                if (window.location.pathname !== '/coc/' && window.location.pathname !== '/coc') {
+                    window.removeEventListener('scroll', checkScrollToBottom);
+                    return;
+                }
+
+                const currentScrollPosition = window.scrollY || window.pageYOffset;
+                const visibleHeight = window.innerHeight;
+                const totalDocumentHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+                // Check if the user has scrolled to the bottom (with a small threshold)
+                if ((currentScrollPosition + visibleHeight) >= totalDocumentHeight - 10) {
+                    window.steamAchievements.unlock('code_of_conduct');
+                    // Remove listener after unlocking
+                    window.removeEventListener('scroll', checkScrollToBottom);
+                }
+            }
+            window.addEventListener('scroll', checkScrollToBottom);
+            // Clean up on page navigation
+            const cleanup = () => {
+                window.removeEventListener('scroll', checkScrollToBottom);
+                document.removeEventListener('astro:before-swap', cleanup);
+            };
+            document.addEventListener('astro:before-swap', cleanup);
+            // Also check immediately in case the page is already at the bottom
+            checkScrollToBottom();
+        }
+    });
+</script>

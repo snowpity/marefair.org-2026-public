@@ -1,0 +1,137 @@
+---
+import { getImage, Image } from 'astro:assets';
+
+import stainRaw from "@assets/bg/JUICE.png";
+const stainImg = await getImage({ src: stainRaw, format:"avif", height:350});
+
+interface ParallaxLayer {
+    offset: string;
+    imgSrc: ImageMetadata;
+    location?: string;
+    width: number;
+    height?: number;
+    class?: string;
+    wrapperClass?: string;
+    noCompression?: boolean;
+    id?: string;
+}
+
+interface Props {
+    parallaxLayers: ParallaxLayer[];
+    vignette?: boolean;
+    stain?: boolean;
+    imageHeight?: number;
+    sideVignette?: boolean;
+    imageWidth?: number;
+    hasMinHeight?: boolean; // minHeight is the height of the dominant bg
+    style?: string;
+}
+const { parallaxLayers, vignette, stain, imageHeight, sideVignette, imageWidth, hasMinHeight, style} = Astro.props;
+
+// Set default location to "center"
+const layersWithDefaults = parallaxLayers.map(layer => ({
+    ...layer,
+    location: layer.location ?? "center"
+}));
+
+const getPositionClass = (location: string) => {
+    switch (location) {
+        case "left":
+            return "left-0";
+        case "right":
+            return "right-0";
+        case "top":
+            return "center-horizontally top-0";
+        case "bottom":
+            return "center-horizontally bottom-0";
+        case "center":
+        default:
+            return "center-horizontally";
+    }
+};
+---
+
+<div data-parallax-complex id="bg" class=`-z-[1] overflow-hidden ${hasMinHeight ? "bgImage" :''}` style={`--img-size: ${imageHeight}px; --img-width: ${imageWidth}px;`}>
+    {layersWithDefaults ?
+        <div class="fixed top-0 left-0 w-full h-screen">
+            <div id="parallax-wrapper" class="absolute center-horizontally wrapper imgWidth" style={`${style}`}>
+                {layersWithDefaults.map((layer, index) => {
+                    const imageElement = layer.noCompression ? (
+                        <img
+                            src={layer.imgSrc.src}
+                            class={`bgImage absolute ${getPositionClass(layer.location)} top-0 element${index} max-w-none ${layer.class}`}
+                            style={`${layer.height ? "height: " + layer.height + "px" : ''}`}
+                            id={`${layer.id ? layer.id : ""}`}
+                            inert
+                        />
+                    ) : (
+                        <Image
+                            src={layer.imgSrc}
+                            width={layer.width}
+                            format="avif"
+                            alt=""
+                            class={`bgImage absolute ${getPositionClass(layer.location)} top-0 element${index} max-w-none ${layer.class}`}
+                            style={`${layer.height ? "height: " + layer.height + "px" : ''}`}
+                            inert
+                        />
+                    );
+
+                    return layer.wrapperClass ? (
+                        <div class={`${layer.wrapperClass}`}>
+                            {imageElement}
+                        </div>
+                    ) : imageElement;
+                })}
+            </div>
+        </div>
+
+        <>
+        { sideVignette && imageWidth ?
+            <div class="absolute top-0 imgWidth h-full min-h-[100lvh] center-horizontally pointer-events-none">
+                <div class="absolute top-0 left-0 w-[320px] h-full -translate-x-[calc(100%-320px)] bg-gradient-to-l from-transparent to-black pointer-events-none before:content-[''] before:absolute before:top-0 before:right-full before:w-screen before:h-full before:bg-black"></div>
+                <div class="absolute top-0 right-0 w-[320px] h-full translate-x-[calc(100%-320px)] bg-gradient-to-r from-transparent to-black pointer-events-none before:content-[''] before:absolute before:top-0 before:left-full before:w-screen before:h-full before:bg-black"></div>
+            </div> : '' }
+        </>
+    : ''}
+
+    {vignette ? <bg id="vignette" class="w-[100dvw] h-[100lvh] fixed top-0 left-0 inset-0 shadow-[inset_0_0_100px_80px_rgba(0,0,0,0.5)]"/> : ''}
+    {stain ? <div class="pointer-events-none absolute bg-repeat-x h-[350px] w-full opacity-30 mix-blend-multiply" style={`background-image: url(${stainImg.src});`}/> : ''}
+</div>
+
+<style>
+    .center-horizontally{
+        @apply left-1/2 -translate-x-1/2;
+    }
+    .fixed-size {
+        object-fit: none;
+    }
+
+    .bgImage{
+        height: max(var(--img-size), 100lvh);
+        object-fit: cover;
+    }
+
+    .imgWidth{
+        width: var(--img-width);
+        max-width: var(--img-width);
+        min-width: var(--img-width);
+    }
+</style>
+
+<style is:inline set:html={parallaxLayers.map((layer, index) => `
+    .element${index} {
+        animation-name: parallax${index};
+        animation-timing-function: linear;
+        animation-duration: 1ms;
+        animation-fill-mode: both;
+        animation-timeline: scroll();
+        animation-range: 0% 100%;
+        --parallax${index}-animation-timeline: scroll();
+        --parallax${index}-animation-range: 0% 100%;
+    }
+
+    @keyframes parallax${index} {
+        0% { transform: translateY(0%); }
+        100% { transform: translateY(calc(-100% + 100lvh + ${layer.offset})); }
+    }
+`).join('\n')} />

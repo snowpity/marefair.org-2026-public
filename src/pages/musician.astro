@@ -1,0 +1,740 @@
+---
+import { Image, getImage } from "astro:assets";
+import { Icon } from "astro-icon/components";
+import Layout from "@layouts/Layout.astro";
+import {musicians} from "@components/MusicianData"
+import VendorModal from '@components/VendorModal.astro'; // Reusable modal
+
+import CORP from "@assets/musicians/corpy.png"
+
+import music_active from "@assets/musicians/musicbox_playing.png"
+import musicianPage from "@assets/musicians/Musicianpagenote.png"
+
+
+// Pull the shape VendorModal expects (or just redeclare it locally since it's exported)
+type Vendor = {
+    name: string;
+    description: string;
+    icon?: any;
+    'icon-src'?: string;
+    'x-link'?: string | string[];
+    'deviantart-link'?: string | string[];
+    'tumblr-link'?: string | string[];
+    'instagram-link'?: string | string[];
+    'youtube-link'?: string | string[];
+    'bandcamp-link'?: string | string[];
+    'spotify-link'?: string | string[];
+    'soundcloud-link'?: string | string[];
+    'other-link'?: string | string[];
+    id: string;
+};
+
+function slugify(name: string) {
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+}
+
+const musicianVendors: Vendor[] = musicians
+    .filter((m): m is typeof m & { name: string } => Boolean(m.name)) // drop day-divider entries
+    .map((m) => ({
+        name: m.name,
+        description: m.desc || '',
+        icon: m.art,
+        id: slugify(m.name),
+        'x-link': (m as any)['x-link'],
+        'deviantart-link': (m as any)['deviantart-link'],
+        'tumblr-link': (m as any)['tumblr-link'],
+        'instagram-link': (m as any)['instagram-link'],
+        'youtube-link': (m as any)['youtube-link'],
+        'bandcamp-link': (m as any)['bandcamp-link'],
+        'spotify-link': (m as any)['spotify-link'],
+        'soundcloud-link': (m as any)['soundcloud-link'],
+        'other-link': (m as any)['other-link'],
+    }));
+
+import bg from "@assets/musicians/Musicianmare.png"
+import fg from "@assets/musicians/foreground.png"
+const ratio = bg.width/bg.height;
+const width = 1920;
+const height = width / ratio;
+
+const rotAngle = [-1,1,0];
+const rotLength = rotAngle.length - 1;
+const tran = [0,-0.5,0.5]
+const tranLength = tran.length - 1;
+
+---
+
+<Layout title="Musicians | Mare Fair 2026">
+    <div id="super-wrapper" class="relative overflow-x-hidden overflow-y-scroll w-screen h-screen mx-auto" style="max-width: calc(100vh * 20 / 9)">
+        <input type="radio" name="musician-toggle" id="default-musician-toggle" class="hidden" checked/>
+        <VendorModal vendors={musicianVendors} iconDefault={CORP} prefix="musician" map_prefix="" isArtistAlley={false}/>
+
+        <div id="sticky-layer" class="sticky top-0 h-0 w-full" inert>
+            {/* Desktop */}
+            <Image src={bg} format="avif" alt="bg" class="mu:block hidden absolute right-0 top-0 max-w-none object-cover object-right h-screen w-auto" width={width} height={height}/>
+            <!-- There's supposed to be some pop-up modal when you click on a musician for their bio and stuffs, didn't get enough bios, not implemented. -->
+            <Image src={fg} format="avif" alt="fg" class="mu:block hidden absolute left-0 top-0 h-screen w-auto"/>
+
+            {/* Mobile */}
+            <Image src={fg} format="avif" alt="fg" class="mu:hidden block absolute left-0 top-0 h-screen min-w-[170%] object-cover object-top-left"/>
+        </div>
+
+        <div id="list-wrapper" class="relative w-fit h-fit pointer-events-none">
+            <div class="mu:block hidden invisible h-screen max-w-screen mu:min-w-none min-w-full" style={`aspect-ratio: ${fg.width} / ${fg.height}; `} aria-hidden="true"></div> {/* This div imitates fg without having to draw another image */}
+            <div class="mu:hidden block invisible w-screen h-screen"> </div>
+
+            <div class="absolute top-0 mu:-left-1/20 left-0 mu:w-2/3 pb-10 w-full">
+            { musicians.map((musician,index) => (
+                musician.name ? (
+                    <label for={`${slugify(musician.name)}-toggle`} class="relative block w-full h-fit cursor-grab active:cursor-grabbing musician-card pointer-events-auto"
+                            data-musician-name={musician.name}
+                            data-musician-src={musician.art.src || musician.art}>
+                        <Image src={musicianPage} format="avif" width="600" alt="" class="w-full" inert/>
+                        <div class="absolute ml-[30%] mt-[7%] w-1/2 h-3/7 top-1/5">
+                            <Image src={musician.art} format="avif" width="400" height="400" alt="" class="w-full h-full object-contain mix-blend-hard-light" inert/>
+                            <center>
+                                <h1 class="font-bold mu:text-xl text-[5vw]"> {musician.name} </h1>
+                                <p class="mu:text-base text-[4vw]"> {musician.time} </p>
+                            </center>
+                        </div>
+                    </label>
+                ) : (
+                    <div class="relative w-full h-fit">
+                        <Image src={musician.art} format="avif" width="600" alt="" class="pl-[10%] w-full -mb-[10%] mt-[20%]" inert/>
+                    </div>
+                )
+            ))}
+            </div>
+        </div>
+
+        <div class="mu:block hidden noJS">
+        <input type="checkbox" id="cassette-toggle" class="hidden"> </input>
+        <div id="dropZone" class="fixed bottom-5 left-1/2 -translate-x-1/2 h-fit w-fit">
+            <label for="cassette-toggle" id="toggle-button" class="">
+                <Icon name="mdi:arrow-up-down-bold-outline" class="relative text-white text-4xl" />
+            </label>
+            <Image src={music_active} format="avif" alt="Trotmare Cassette Player" class="relative !max-w-[100vw] relative z-[10] pointer-events-none" height=`${400}`/>
+        </div>
+
+        <!-- Simpler player I stole from PTS -->
+        <div id="player" class="fixed bottom-0 left-0 right-0 bg-gray-900/90 backdrop-blur-sm border-t border-gray-700 p-4 translate-y-full transition-all z-20">
+            <button id="close-player-btn" class="absolute -top-10 right-3 text-gray-400 hover:text-white transition cursor-pointer" aria-label="Close Player">
+                <Icon name="mdi:close-box-outline" class="relative text-white text-4xl" />
+            </button>
+
+            <div class="max-w-7xl mx-auto">
+                <div class="mb-3">
+                    <input
+                        type="range"
+                        id="progress-bar"
+                        class="w-full h-2 bg-gray-500 rounded-lg appearance-none cursor-pointer accent-white"
+                        min="0"
+                        max="100"
+                        value="0"
+                    />
+                    <div class="flex justify-between text-xs text-gray-400 mt-1">
+                        <span id="current-time">0:00</span>
+                        <span id="total-time">0:00</span>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center justify-between">
+                    <div class="flex-1">
+                        <div class="hidden sm:flex items-center justify-between mb-3">
+                            <div class="flex-1 min-w-0">
+                                <div class="current-track text-white font-semibold truncate">No track playing</div>
+                                <div class="current-artist text-gray-400 text-sm">Mare Fair</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-4">
+                        <button id="prev-btn" class="text-white hover:text-gray-300 transition">
+                            <Icon name="mdi:skip-previous" class="relative text-4xl" />
+                        </button>
+                        <button id="play-pause-btn" class="text-white hover:text-gray-300 p-3 hover:scale-105 transition">
+                            <Icon id="play-icon" name="mdi:play-circle" class="relative text-5xl hidden" />
+                            <Icon id="pause-icon" name="mdi:pause-circle" class="relative text-5xl" />
+                        </button>
+                        <button id="next-btn" class="text-white hover:text-gray-300 transition">
+                            <Icon name="mdi:skip-next" class="relative text-4xl" />
+                        </button>
+                    </div>
+
+                    <div class="flex items-center space-x-2 flex-1 justify-end sm:sm-0 mt-5">
+                        <button id="mute-btn" class="text-white hover:text-gray-300 transition">
+                            <Icon id="volume-icon" name="mdi:volume-high" class="relative text-4xl" />
+                            <Icon id="mute-icon" name="mdi:volume-mute" class="relative text-4xl hidden" />
+                        </button>
+                        <input
+                            type="range"
+                            id="volume-bar"
+                            class="w-24 h-2 bg-gray-500 rounded-lg appearance-none cursor-pointer accent-white"
+                            min="0"
+                            max="100"
+                            value="100"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+    input[type="radio"][name="musician-toggle"]:checked + div {
+        @apply opacity-100 pointer-events-auto backdrop-blur-sm transition-[opacity,backdrop-filter] duration-200;
+    }
+    .noJS {
+        @apply lg:!hidden;
+    }
+    .cassette-bg {
+        background: linear-gradient(#6e6d6d 0%, #3d3d3c 30%,#2d2c2c 50%);
+    }
+    #dropZone {
+        @apply transform translate-y-[110%] transition-transform;
+    }
+    #cassette-toggle:checked ~ #dropZone {
+        @apply translate-y-0;
+    }
+
+    #toggle-button {
+        @apply absolute left-1/2 transform -translate-x-1/2 sm:-top-[20%] -top-28 cursor-pointer hover:scale-125 pointer-events-auto;
+        /* Add transition for the top property */
+        transition: transform 0.3s ease, top 0.3s ease;
+    }
+    #cassette-toggle:checked ~ #dropZone #toggle-button {
+        @apply -top-[20%];
+    }
+
+    .absolute-centered{
+        @apply absolute left-1/2 transform -translate-x-1/2;
+    }
+
+    .musician-clickable {
+        @apply w-fit h-fit cursor-pointer top-0;
+    }
+    .transition-musician {
+        @apply transition-all duration-300 transform;
+    }
+    input[type="radio"][name="musician-toggle"]:checked + div label{
+        @apply translate-x-0;
+    }
+    input[type="radio"][name="musician-toggle"]:checked + div div{
+        @apply translate-x-0 opacity-100;
+    }
+
+    @media (max-width: 1023px) {
+        input[type="radio"][name="musician-toggle"]:checked + div label{
+            @apply translate-y-0;
+        }
+        input[type="radio"][name="musician-toggle"]:checked + div div{
+            @apply h-[150px] opacity-100;
+        }
+    }
+
+    @keyframes vibrate {
+        0% {
+            transform-origin: 50% 50%;
+            transform: translate(0, 0) rotate(-1deg);
+        }
+        50% {
+            transform-origin: 50% 50%;
+            transform: translate(-1px, -1px) rotate(-1deg) scale(0.99);
+        }
+        100% {
+            transform-origin: 50% 50%;
+            transform: translate(1px, 1px) rotate(1deg);
+        }
+    }
+
+    .headPopOut{
+        @apply translate-x-0 opacity-100;
+    }
+
+    .card-container:focus .card-inner {
+        transform: rotateY(180deg) !important;
+    }
+</style>
+
+<script>
+    function preloadAudio(src: string): Promise<HTMLAudioElement>
+        {
+        return new Promise((resolve, reject) => {
+            const audio = new Audio();
+            audio.src = src;
+            audio.preload = 'auto';
+
+            const cleanup = () => {
+                audio.oncanplaythrough = null;
+                audio.onerror = null;
+            };
+
+            audio.oncanplaythrough = () => {
+                cleanup();
+                resolve(audio);
+            };
+
+            audio.onerror = (e) => {
+                cleanup();
+                reject(new Error(`Failed to preload audio: ${src}`));
+            };
+
+            audio.load(); // Not strictly necessary, but explicit
+        });
+    }
+
+    let currentMusicianIndex = -1;
+
+    const musicianOrder: { name: string; music: string; musicName: string }[] = JSON.parse(
+        document.getElementById('musician-data')!.textContent!
+    );
+    const musicMapping: Record<string, string> = Object.fromEntries(
+        musicianOrder.map(m => [m.name, m.music])
+    );
+    // Create audio context
+    let audioContext: AudioContext;
+    let isAudioInitialized = false;
+    let currentAudio: HTMLAudioElement | null = null;
+    let currentMusicKey: string = '';
+    let isPlaying: boolean = false;
+
+    // Volume control variables
+    let isDraggingVolume = false;
+    let startY = 0;
+    let startVolume = 0.7; // Default volume
+    let currentVolume = 0.7;
+
+    function cleanupAudio()
+    {
+        if (currentAudio)
+        {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+            currentAudio = null;
+        }
+        isPlaying = false;
+        currentMusicKey = '';
+    }
+
+    // Page navigation cleanup
+    document.addEventListener('astro:before-preparation', cleanupAudio);
+    document.addEventListener('astro:before-swap', cleanupAudio);
+    window.addEventListener('beforeunload', cleanupAudio);
+    window.addEventListener('pagehide', cleanupAudio);
+
+
+    document.addEventListener('astro:page-load', async () => {
+
+        document.querySelectorAll('div.noJS').forEach(div => {
+            div.classList.toggle('noJS');
+        });
+
+        // AUDIO FX
+        const cassette_click = await preloadAudio("https://fair-filer.marefair.org/2025/musicians/sound/vhs_click.ogg");
+        const cassette_insert = await preloadAudio("https://fair-filer.marefair.org/2025/musicians/sound/vhs_insert.ogg");
+
+        function playCassetteClickAudio()
+        {
+            setTimeout(() => {
+                cassette_click.play();
+            }, cassette_click.duration);
+        }
+        function playCassetteInsertAudio()
+        {
+            setTimeout(() => {
+                cassette_insert.play();
+            }, cassette_insert.duration);
+        }
+
+        function initializeAudio() {
+            if (!isAudioInitialized) {
+                audioContext = new window.AudioContext;
+                isAudioInitialized = true;
+            }
+        }
+
+        function playDropSound(altName: string) {
+            // Play the cassette insert FX
+            playCassetteInsertAudio();
+
+            const musicKey = altName;
+            console.log("isPlaying " + musicKey);
+
+            // Find the index of this musician in our order array
+            const musicianIndex = musicianOrder.findIndex(m => m.name === altName);
+            const musicianMusicName = musicianIndex !== -1 ? musicianOrder[musicianIndex].musicName : '';
+            if (musicianIndex !== -1) {
+                currentMusicianIndex = musicianIndex;
+            }
+
+            // Check if we have a music file for this artist
+            if (musicMapping[musicKey]) {
+                // Stop current audio if playing
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                }
+
+                // Create new audio instance
+                currentAudio = new Audio(musicMapping[musicKey]);
+                currentAudio.volume = currentVolume;
+                currentMusicKey = musicKey;
+
+                // Set up event listeners
+                currentAudio.addEventListener('ended', () => {
+                    isPlaying = false;
+                    playIcon?.classList.remove('hidden');
+                    pauseIcon?.classList.add('hidden');
+                    console.log('Finished');
+                });
+
+                currentAudio.addEventListener('loadstart', () => {
+                    console.log('Loading...');
+                });
+
+                currentAudio.addEventListener('canplay', () => {
+                    console.log('Ready to play');
+                });
+
+                currentAudio.addEventListener('loadedmetadata', () => {
+                    if (progressBar) {
+                        progressBar.max = String(currentAudio!.duration);
+                    }
+                    if (totalTimeEl) {
+                        totalTimeEl.textContent = `${Math.floor(currentAudio!.duration / 60)}:${String(Math.floor(currentAudio!.duration % 60)).padStart(2, '0')}`;
+                    }
+                });
+
+                currentAudio.addEventListener('timeupdate', () => {
+                    if (progressBar) {
+                        progressBar.value = String(currentAudio!.currentTime);
+                    }
+                    if (currentTimeEl) {
+                        currentTimeEl.textContent = `${Math.floor(currentAudio!.currentTime / 60)}:${String(Math.floor(currentAudio!.currentTime % 60)).padStart(2, '0')}`;
+                    }
+                });
+
+                updatePlayerDisplay(altName, musicianMusicName);
+                showPlayer();
+
+                // Play the audio
+                currentAudio.play().then(() => {
+                    isPlaying = true;
+                    playIcon?.classList.add('hidden');
+                    pauseIcon?.classList.remove('hidden');
+                    console.log('Playing');
+                }).catch(e => {
+                    console.log('Could not play audio:', e);
+                    console.log('Error playing');
+                });
+            }
+        }
+
+        function loadMusicianByIndex(index: number) {
+            if (index < 0 || index >= musicianOrder.length) return;
+
+            const musician = musicianOrder[index];
+
+            // Find the corresponding image element
+            const musicianCard = document.querySelector(`[data-musician-name="${musician.name}"] img`) as HTMLImageElement;
+
+            if (musicianCard) {
+                // Simulate the drop functionality
+                playDropSound(musician.name);
+
+                // Update the current index
+                currentMusicianIndex = index;
+            }
+        }
+        // Function to handle next button
+        function handleNextControl() {
+            // Play FX
+            playCassetteClickAudio();
+
+            // Calculate next index
+            let nextIndex;
+
+            if (currentMusicianIndex === -1) {
+                // No musician loaded, start with first one
+                nextIndex = 0;
+            } else {
+                // Move to next musician, wrap around to beginning if at end
+                nextIndex = (currentMusicianIndex + 1) % musicianOrder.length;
+            }
+
+            // Load the next musician
+            loadMusicianByIndex(nextIndex);
+        }
+
+
+        function handlePlayControl()
+        {
+            // Play FX
+            playCassetteClickAudio();
+
+            if (!currentAudio) {
+                console.log('No music loaded');
+                return;
+            }
+
+            if (isPlaying) {
+                // Pause the music
+                currentAudio.pause();
+                isPlaying = false;
+                console.log('Paused');
+            } else {
+                // Play or resume the music
+                if (currentAudio.ended) {
+                    // If ended, restart from beginning
+                    currentAudio.currentTime = 0;
+                }
+
+                currentAudio.play().then(() => {
+                    isPlaying = true;
+                    console.log('Playing');
+                }).catch(e => {
+                    console.log('Could not play audio:', e);
+                    console.log('Error playing');
+                });
+            }
+        }
+
+        function handleEjectControl()
+        {
+            // Stop current audio
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio.currentTime = 0;
+                currentAudio = null;
+            }
+
+            // Play the cassette insert FX
+            playCassetteInsertAudio();
+
+            // Reset state
+            isPlaying = false;
+            currentMusicKey = '';
+            currentMusicianIndex = -1;
+
+            console.log('Ejected');
+        }
+
+        // Initialize elements
+        const musicianCards = document.querySelectorAll('.musician-card') as NodeListOf<HTMLElement>;
+        const dropZone = document.getElementById('dropZone') as HTMLElement;
+        const player = document.getElementById('player') as HTMLElement;
+        const playPauseBtn = document.getElementById('play-pause-btn') as HTMLElement;
+        const prevBtn = document.getElementById('prev-btn') as HTMLElement;
+        const nextBtn = document.getElementById('next-btn') as HTMLElement;
+        const progressBar = document.getElementById('progress-bar') as HTMLInputElement;
+        const currentTimeEl = document.getElementById('current-time');
+        const totalTimeEl = document.getElementById('total-time');
+        const currentTrackEls = document.querySelectorAll('.current-track');
+        const currentArtistEls = document.querySelectorAll('.current-artist');
+        const playIcon = document.getElementById('play-icon') as HTMLElement | null;
+        const pauseIcon = document.getElementById('pause-icon') as HTMLElement | null;
+        const volumeBar = document.getElementById('volume-bar') as HTMLInputElement;
+        const muteBtn = document.getElementById('mute-btn');
+        const volumeIcon = document.getElementById('volume-icon');
+        const muteIcon = document.getElementById('mute-icon');
+        const closePlayerBtn = document.getElementById('close-player-btn');
+
+        function showPlayer() {
+            player?.classList.remove('translate-y-full');
+        }
+        function hidePlayer() {
+            player?.classList.add('translate-y-full');
+        }
+
+        function updatePlayerDisplay(trackName: string, artistName: string) {
+            currentTrackEls.forEach(el => {
+                el.textContent = trackName || 'No track playing';
+            });
+            currentArtistEls.forEach(el => {
+                el.textContent = artistName || '';
+            });
+        }
+
+        function updateVolumeUI(volume: number) {
+            if (volumeBar) volumeBar.value = String(volume * 100);
+            if (volumeIcon && muteIcon) {
+                if (volume === 0) {
+                    volumeIcon.classList.add('hidden');
+                    muteIcon.classList.remove('hidden');
+                } else {
+                    volumeIcon.classList.remove('hidden');
+                    muteIcon.classList.add('hidden');
+                }
+            }
+        }
+
+        function togglePlayPause() {
+            if (!currentAudio) return;
+
+            if (currentAudio.paused) {
+                currentAudio.play().then(() => {
+                    isPlaying = true;
+                    playIcon?.classList.add('hidden');
+                    pauseIcon?.classList.remove('hidden');
+                }).catch(() => {
+                    console.log('Could not resume audio');
+                });
+            } else {
+                currentAudio.pause();
+                isPlaying = false;
+                playIcon?.classList.remove('hidden');
+                pauseIcon?.classList.add('hidden');
+            }
+        }
+
+        function playPrev() {
+            if (currentMusicianIndex > 0) {
+                loadMusicianByIndex(currentMusicianIndex - 1);
+            }
+        }
+
+        function playNext() {
+            if (currentMusicianIndex < musicianOrder.length - 1) {
+                loadMusicianByIndex(currentMusicianIndex + 1);
+            }
+        }
+
+        function bindPlayerEvents() {
+            playPauseBtn?.addEventListener('click', togglePlayPause);
+            prevBtn?.addEventListener('click', playPrev);
+            nextBtn?.addEventListener('click', playNext);
+
+            closePlayerBtn?.addEventListener('click', () => {
+                if (currentAudio) {
+                    currentAudio.pause();
+                    currentAudio.currentTime = 0;
+                }
+                isPlaying = false;
+                playIcon?.classList.remove('hidden');
+                pauseIcon?.classList.add('hidden');
+                updatePlayerDisplay('No track playing','No artist');
+                if (progressBar) progressBar.value = "0";
+                if (currentTimeEl) currentTimeEl.textContent = "0:00";
+                if (totalTimeEl) totalTimeEl.textContent = "0:00";
+                hidePlayer();
+            });
+
+            progressBar?.addEventListener('input', (e) => {
+                if (currentAudio) {
+                    currentAudio.currentTime = Number((e.target as HTMLInputElement).value);
+                }
+            });
+
+            volumeBar?.addEventListener('input', (e) => {
+                const volume = Number((e.target as HTMLInputElement).value) / 100;
+                currentVolume = volume;
+                if (currentAudio) currentAudio.volume = volume;
+                updateVolumeUI(volume);
+            });
+
+            muteBtn?.addEventListener('click', () => {
+                if (!currentAudio) return;
+                if (currentAudio.volume > 0) {
+                    currentAudio.volume = 0;
+                    currentVolume = 0;
+                    updateVolumeUI(0);
+                } else {
+                    currentAudio.volume = 1;
+                    currentVolume = 1;
+                    updateVolumeUI(1);
+                }
+            });
+        }
+
+        bindPlayerEvents();
+
+        // Pointer-drag system - clone on body to escape overflow:hidden
+        let sourceCard: HTMLElement | null = null;
+        let dragClone: HTMLElement | null = null;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+        let dragStartX = 0;
+        let dragStartY = 0;
+        const DRAG_THRESHOLD = 5;
+        let isDragging = false;
+
+        musicianCards.forEach(card => {
+            card.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                e.preventDefault();
+                sourceCard = card;
+                isDragging = false;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                const rect = card.getBoundingClientRect();
+                dragOffsetX = e.clientX - rect.left;
+                dragOffsetY = e.clientY - rect.top;
+            });
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!sourceCard) return;
+            const dx = e.clientX - dragStartX;
+            const dy = e.clientY - dragStartY;
+            if (!isDragging && Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) {
+                isDragging = true;
+                const rect = sourceCard.getBoundingClientRect();
+                dragClone = sourceCard.cloneNode(true) as HTMLElement;
+                dragClone.style.position = 'fixed';
+                dragClone.style.width = `${rect.width}px`;
+                dragClone.style.left = `${rect.left}px`;
+                dragClone.style.top = `${rect.top}px`;
+                dragClone.style.zIndex = '9999';
+                dragClone.style.pointerEvents = 'none';
+                dragClone.style.cursor = 'grabbing';
+                dragClone.style.opacity = '0.95';
+                document.body.appendChild(dragClone);
+                sourceCard.style.opacity = '0';
+            }
+            if (!isDragging || !dragClone) return;
+            dragClone.style.left = `${e.clientX - dragOffsetX}px`;
+            dragClone.style.top  = `${e.clientY - dragOffsetY}px`;
+            const dropRect = dropZone.getBoundingClientRect();
+            const hovering =
+                e.clientX >= dropRect.left && e.clientX <= dropRect.right &&
+                e.clientY >= dropRect.top  && e.clientY <= dropRect.bottom;
+            dropZone.classList.toggle('dragover', hovering);
+        });
+
+        document.addEventListener('mouseup', (e) => {
+            if (!sourceCard) return;
+            const card = sourceCard;
+            sourceCard = null;
+            dropZone.classList.remove('dragover');
+            if (!isDragging || !dragClone) { isDragging = false; return; }
+            const dropRect = dropZone.getBoundingClientRect();
+            const dropped =
+                e.clientX >= dropRect.left && e.clientX <= dropRect.right &&
+                e.clientY >= dropRect.top  && e.clientY <= dropRect.bottom;
+            if (dropped) playDropSound(card.dataset.musicianName || '');
+            const originRect = card.getBoundingClientRect();
+            dragClone.style.transition = 'left 0.4s cubic-bezier(0.25,0.46,0.45,0.94), top 0.4s cubic-bezier(0.25,0.46,0.45,0.94), opacity 0.3s ease';
+            dragClone.style.left = `${originRect.left}px`;
+            dragClone.style.top  = `${originRect.top}px`;
+            const clone = dragClone;
+            dragClone = null;
+            clone.addEventListener('transitionend', () => {
+                clone.remove();
+                card.style.opacity = '';
+            }, { once: true });
+            isDragging = false;
+        });
+
+        // Initialize audio on first user interaction
+        document.addEventListener('click', initializeAudio, { once: true });
+        document.addEventListener('mousedown', initializeAudio, { once: true });
+    });
+</script>
+
+<script id="musician-data" type="application/json" set:html={JSON.stringify(musicians.map(m => ({ name: m.name, music: m.music, musicName: m.musicName })))} />

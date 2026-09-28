@@ -1,0 +1,314 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+
+import BgParallaxSimple from '@components/BgParallaxSimple.astro'
+
+import img2 from '@assets/main/colored/2.png';
+import img3 from '@assets/main/colored/3.png';
+import img4 from '@assets/main/colored/4.png';
+import img5 from '@assets/main/colored/5.png';
+import img6 from '@assets/main/colored/6.png';
+import img7 from '@assets/main/colored/7.png';
+
+import bgFull from '@assets/main/colored/bgfull.png';
+import bgFullMobile from '@assets/main/colored/bgfullMobile.png';
+
+import { getCollection } from 'astro:content';
+
+const newsCollection = await getCollection('news') ?? [];
+
+const latestNews = newsCollection.length > 0 ? newsCollection[0] : null;
+
+const ratio = img2.width/img2.height;
+const imgSize = 2560; //QHD
+const imageHeight = 2560 / ratio; // from above
+
+// 2560 - 1928 = 640
+// 640 / 2 = 320, which is what I'm using for the vignette
+
+import coc from '@assets/main/signs/CodeOfConductSign.png';
+import apply from '@assets/main/signs/Mare_Fair_4_Apply_Sign.png';
+import venue from '@assets/main/signs/venue.png';
+import news from '@assets/main/signs/newsOld.png';
+import about from '@assets/main/signs/about.png';
+import contact from '@assets/main/signs/Contact_Signage.png';
+import register from '@assets/main/signs/Register_Sign.png';
+import sponsor from '@assets/main/signs/SignPostSponsors.png';
+import SignPostMascots from '@assets/main/signs/SignPostMascots.png';
+import Scrapbook from '@assets/main/signs/Scrapbook.png';
+import Events from '@assets/main/signs/Events.png';
+import Credits from '@assets/main/signs/wizard_sign.png';
+import charity from '@assets/charity/CharitySign.png'
+import vendor from '@assets/main/signs/vendor_sign.png';
+import map from '@assets/main/signs/map_sign.png';
+import schedule from '@assets/main/signs/Schedule.png';
+import musician from '@assets/main/signs/MFmusicians.png';
+import conbook from '@assets/main/signs/conbook.png';
+
+const signs = [
+    {
+        src: schedule,
+        alt: "Schedule",
+        link: "/schedule"
+    },
+    {
+        src: venue,
+        alt: "Venue",
+        link: "/venue"
+    },
+    {
+        src: map,
+        alt: "Map",
+        link: "/map"
+    },
+    {
+        src: conbook,
+        alt: "Conbook",
+        link: "/conbook"
+    },
+    {
+        src: vendor,
+        alt: "Vendors",
+        link: "/vendors"
+    },
+    {
+        src: musician,
+        alt: "Musician",
+        link: "/musician"
+    },
+    {
+        src: register,
+        alt: "Register",
+        link: "/register"
+    },
+    {
+        src: apply,
+        alt: "Apply",
+        link: "/apply"
+    },
+    {
+        src: news,
+        alt: "News and Articles",
+        link: "/news"
+    },
+    {
+        src: Events,
+        alt: "Events",
+        link: "/events"
+    },
+    {
+        src: about,
+        alt: "About Us",
+        link: "/about"
+    },
+    {
+        src: charity,
+        alt: "Charity partners",
+        link: "/charity"
+    },
+    {
+        src: SignPostMascots,
+        alt: "Mascots",
+        link: "/mascots"
+    },
+    {
+        src: contact,
+        alt: "Contact",
+        link: "/contact"
+    },
+    {
+        src: coc,
+        alt: "Code of Conduct",
+        link: "/coc"
+    },
+    {
+        src: sponsor,
+        alt: "Sponsors",
+        link: "/sponsors"
+    },
+    {
+        src: Scrapbook,
+        alt: "Scrapbook",
+        link: "/scrapbook"
+    },
+    {
+        src: Credits,
+        alt: "Credits",
+        link: "/credits"
+    }
+]
+const signpostWidth = 480
+const rot = [2,-1,1,-2]
+
+import SignTop from '@assets/main/colored/SIGN TOP cropped.png';
+import SignLoopRaw from '@assets/main/colored/signLoop.png';
+const SignLoop = await getImage({ src: SignLoopRaw, format:"avif", width:signpostWidth});
+
+import BgParallaxComplex from '@components/BgParallaxComplex.astro';
+
+function getHeight(image: ImageMetadata)
+{
+    return imgSize * (image.height/image.width)
+}
+
+const parallaxLayers = [
+    {
+        offset: '0%',
+        imgSrc: img2 ,
+        location: "center",
+        width: imgSize,
+        height: getHeight(img2)
+    },
+    {
+        offset: '0%',
+        imgSrc: img3,
+        location: "center",
+        width: imgSize,
+        height: getHeight(img3)
+    },
+    {
+        offset: '0%',
+        imgSrc: img4,
+        location: "center",
+        width: imgSize,
+        height: getHeight(img4)
+    },
+    {
+        offset: '0%',
+        imgSrc: img5,
+        location: "center",
+        width: imgSize,
+        height: getHeight(img5)
+    },
+    {
+        offset: '0%',
+        imgSrc: img6,
+        location: "center",
+        width: imgSize,
+        height: getHeight(img6)
+    },
+    {
+        offset: '0%',
+        imgSrc: img7,
+        location: "center",
+        width: imgSize,
+        height: getHeight(img7)
+    },
+];
+
+const signageBottomSpacing = 800; // 300;
+const mobileModeHeight = 2400;
+---
+
+<Layout>
+    <div id="desktop-view-parallax" class="relative overflow-hidden lg:block hidden" style={`--img-height: ${imageHeight}px; --img-width: ${imgSize}px`}>
+        <BgParallaxComplex parallaxLayers={parallaxLayers} imageHeight={0} sideVignette imageWidth={imgSize} hasMinHeight/>
+
+        <!-- le signage -->
+        <input type="checkbox" id="checkbox_pole" class="peer hidden">
+
+        {/* the 100dvh is important, it pushes the sign up, whereas `fixed top-0 left-0` was taken away from the bg divs */}
+        <div id="pole" class="relative top-0 imgWidth center-horizontally peer-checked:opacity-10 transition-opacity -mt-[100dvh]">
+            <div class="relative pt-40 w-fit top-0 2xl:left-125 xl:left-150 lg:left-175 select-none pointer-events-none">
+                <Image src={SignTop} width={signpostWidth} format="avif" alt="Mare Fair 2026, Orlando, Florida, August 28th through the 30th" class="relative z-1" inert/>
+                <label for="checkbox_pole" tabindex="0" role="button" aria-label="Pole Opacity Switch" class="absolute pointer-events-auto top-40 m-5 mx-20 w-[65%] h-80 z-10 cursor-pointer"/>
+                {/* NOTE: THE HEIGHT OF THE PARALLAX IS CONTROLLED BY THE HEIGHT OF THE SIGN WRAPPER */}
+                <div id="signageWrapper" class="relative w-fit flex flex-col items-center w-full" style={`height: ${imageHeight - 16 * 40 + signageBottomSpacing}px`}> {/* Eyeballed it to go with layer 6*/}
+                    <div class="absolute left-0 top-0 h-full bg-size-[100%_auto] max-w-screen" style={`background-image: url(${SignLoop.src});width: ${signpostWidth}px`}/>
+                    { signs.map((sign,index) => (
+                        <a href={sign.link} class="relative block w-fit px-5 pointer-events-auto sign-rotate hover:rotate-0 hover:scale-102 duration-300 transition-transform z-2" style={`--sign-rotation: ${rot[index % rot.length]}deg`}>
+                            <Image src={sign.src} width={signpostWidth * 0.75} format="avif" alt={sign.alt} class=""/>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="static-view" class=" lg:hidden block">
+
+        <!-- le signage -->
+        <div id="pole" class="imgWidth ">
+            <div id="small-screen" class="sm:block hidden">
+                <BgParallaxSimple imgSrc={bgFull} imageHeight={mobileModeHeight}/>
+            </div>
+            <div id="mobile" class="sm:hidden block">
+                <BgParallaxSimple imgSrc={bgFullMobile} imageHeight={mobileModeHeight}/>
+            </div>
+            <div class="relative w-fit h-fit mt-20 translate-x-0 select-none pointer-events-none">
+                <Image src={SignTop} width={signpostWidth} format="avif" alt="Mare Fair 2026, Orlando, Florida, August 28th through the 30th" class="relative z-1" inert/>
+
+                <div id="signageWrapper" class="relative h-fit w-fit flex flex-col items-center w-full h-full pb-40">
+                    <div class="absolute left-0 top-0 h-full bg-size-[100%_auto] max-w-screen" style={`background-image: url(${SignLoop.src});width: ${signpostWidth}px`}/>
+                    { signs.map((sign,index) => (
+                        <a href={sign.link} class="relative block w-fit px-5 pointer-events-auto sign-rotate hover:rotate-0 hover:scale-102 duration-300 transition-transform z-2" style={`--sign-rotation: ${rot[index % rot.length]}deg`}>
+                            <Image src={sign.src} width={signpostWidth * 0.75} format="avif" alt={sign.alt} class=""/>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+    .sign-rotate {
+        transform: rotate(var(--sign-rotation));
+    }
+    .sign-rotate:hover{
+        transform: rotate(0);
+    }
+    .center-horizontally{
+        @apply left-1/2 -translate-x-1/2;
+    }
+
+    :root { /* For some reason this variable causes auto scrolling issue on firefox's polyfill, so just use the right number instead*/
+    --parallax-end: 210%;
+    }
+
+    .fixed-size {
+        @apply w-auto max-w-none;
+        object-fit: none;
+        height: var(--img-height);
+    }
+
+    .pole-size {
+        min-height: var(--img-height);
+    }
+
+    .imgWidth{
+        width: var(--img-width);
+        max-width: var(--img-width);
+        min-width: var(--img-width);
+    }
+
+</style>
+
+<script>
+    let mirinTimeout: ReturnType<typeof setTimeout> | null = null;
+
+    document.addEventListener("astro:page-load", () =>
+    {
+        // Check if we're on the index page
+        const isIndexPage = window.location.pathname === '/' || window.location.pathname === '/index';
+
+        // ACHIEVEMENT: mirin the front page
+        if (isIndexPage && !window.steamAchievements.isUnlocked('mirin')) {
+            const targetTime = 10 * 1000; // 5 seconds
+
+            mirinTimeout = setTimeout(() => {
+                window.steamAchievements.unlock('mirin');
+            }, targetTime);
+        }
+    });
+
+    // Clear the timeout if the user navigates away
+    document.addEventListener("astro:before-preparation", () => {
+        if (mirinTimeout !== null) {
+            clearTimeout(mirinTimeout);
+            mirinTimeout = null;
+        }
+    });
+</script>

@@ -1,0 +1,66 @@
+---
+import { Image, getImage } from "astro:assets";
+import Layout from "@layouts/Layout.astro";
+import comics from "@assets/comics/comics.png";
+
+
+import BgTileable from '@components/BgTileable.astro';
+import woodRaw from "@assets/bg/wood.png";
+const wood = await getImage({ src: woodRaw, format:"png", height:2048});
+---
+<Layout title="Mare Fair 2026!?">
+    <BgTileable imgSrc={wood.src} vignette stain/>
+    <div class="max-w-[80%] w-fit mx-auto my-10">
+        <div class="relative inline-block" style="filter: drop-shadow(0px 0px 1rem);">
+            <Image src={comics} format="avif" alt="Comics" width="3540" class="w-[1024px]" />
+
+            <input type="checkbox" id="step4" class="hidden peer/step4" autocomplete="off" />
+            <label for="step4" class="duration-300 peer-checked/step4:opacity-0 peer-checked/step4:pointer-events-none">
+                <div class="dark-frame inset-x-0 bottom-0 h-[26%] "> </div>
+            </label>
+
+            <input type="checkbox" id="step3" class="hidden peer/step3" autocomplete="off" />
+            <label for="step3" class="duration-300 peer-checked/step3:opacity-0 peer-checked/step3:pointer-events-none">
+                <div class="dark-frame inset-x-0 bottom-0 h-[51%] "> </div>
+            </label>
+
+            <input type="checkbox" id="step2" class="hidden peer/step2" autocomplete="off" />
+            <label for="step2" class="duration-300 peer-checked/step2:opacity-0 peer-checked/step2:pointer-events-none">
+                <div class="dark-frame inset-x-0 bottom-0 h-[76%] "> </div>
+            </label>
+
+            <input type="checkbox" id="step1" class="hidden peer/step1" autocomplete="off" />
+            <label for="step1" class="duration-300 peer-checked/step1:opacity-0 peer-checked/step1:pointer-events-none">
+                <div class="inset-0 dark-frame flex pt-48 justify-center text-white md:text-6xl sm:text-5xl text-3xl font-bold"> CLICK TO ADVANCE </div>
+            </label>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+    label {
+        @apply w-full h-full absolute bottom-0 transition-opacity duration-300 cursor-pointer;
+    }
+    .dark-frame {
+        @apply bg-black absolute;
+    }
+    input[type="checkbox"] {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener("astro:page-load", () =>
+    {
+        const divElement = document.getElementById('step4') as HTMLElement;
+
+        // ACHIEVEMENT: read the comics
+        if (!window.steamAchievements.isUnlocked('comics'))
+        {
+            divElement.addEventListener('click', function() {
+                window.steamAchievements.unlock('comics');
+            })
+        }
+    });
+</script>

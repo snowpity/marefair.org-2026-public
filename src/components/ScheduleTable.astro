@@ -1,0 +1,250 @@
+---
+export type EventSchedule = Record<string, Record<string, EventDetails>>;
+
+export interface EventDetails {
+    name: string;
+    description: string;
+    business_name: string;
+    'context-id': string;
+    rating: string | string[];
+    startTime: Date;
+    endTime: Date;
+    room: string;
+}
+
+type Assignment = {
+  "start-time": string;
+  "end-time": string;
+  "room-or-table-id": string;
+  "application-name": string;
+  "business-name": string;
+  "questions": Question[];
+  "context": string;
+  "context-id": string;
+};
+
+type Question = {
+  "id": string;
+  "title": string;
+  "answer": string;
+};
+
+type ApiResponse = {
+  assignments: Assignment[];
+};
+
+interface RoomConfigItem {
+  primary: string;
+  alternates: string[];
+}
+
+// Generate time slots in 15-minute increments
+export function generateTimeSlots(startHour: number, endHour: number)
+{
+    const slots = [];
+
+    // Convert fractional hours to total minutes for easier calculation
+    const startMinutes = startHour * 60;
+    const endMinutes = endHour * 60;
+
+    // Generate slots in 15-minute increments
+    for (let minutes = startMinutes; minutes <= endMinutes; minutes += 15) {
+        const hour = Math.floor(minutes / 60);
+        const minute = minutes % 60;
+
+        const displayHour = hour % 24;
+        const formattedHour = displayHour < 10 ? `0${displayHour}` : `${displayHour}`;
+        const formattedMinute = minute < 10 ? `0${minute}` : `${minute}`;
+
+        slots.push(`${formattedHour}:${formattedMinute}`);
+    }
+
+    return slots;
+}
+
+// generate mapping for time
+export function generateTableMaps(timeSlots: string[], events: EventSchedule) {
+    const rooms = Array.from(
+        new Set(Object.values(events).flatMap((entry) => Object.keys(entry)))
+    );
+
+    const rowSpanMap: Record<string, Record<string, number>> = {};
+    const skipMap: Record<string, Record<string, boolean>> = {};
+
+    rooms.forEach((room) => {
+        rowSpanMap[room] = {};
+        skipMap[room] = {};
+
+        for (let i = 0; i < timeSlots.length; ++i) {
+            const time = timeSlots[i];
+            const current = events[time]?.[room];
+
+            if (!current || !current.name || skipMap[room][time]) continue;
+
+            let span = 1;
+            for (let j = i + 1; j < timeSlots.length; ++j) {
+                const nextTime = timeSlots[j];
+                const next = events[nextTime]?.[room];
+
+                if (next && current.name === next.name && current.name !== "") {
+                    span++;
+                    skipMap[room][nextTime] = true;
+                } else {
+                    break;
+                }
+            }
+
+            if (span > 1) {
+                rowSpanMap[room][time] = span;
+            }
+        }
+    });
+
+    return { rowSpanMap, skipMap, rooms };
+}
+
+
+// Parsing and mapping to time
+
+export async function getAssignment(data: Assignment[], roomConfig: RoomConfigItem[]) {
+    // Extract room order from config
+    const roomOrder = roomConfig.map(room => room.primary);
+
+    // Create room mapping
+    const roomMapping: Record<string, string> = {};
+    roomConfig.forEach(room => {
+      roomMapping[room.primary] = room.primary;
+      room.alternates.forEach(alt => {
+        roomMapping[alt] = room.primary;
+      });
+    });
+
+    const events: Record<string, Record<string, EventDetails>> = {};
+
+    // First, collect all the events with their start and end times
+    const roomEvents: Array<{
+        room: string;
+        name: string;
+        desc: string;
+        startTime: Date;
+        endTime: Date;
+        rating: string;
+        business_name: string;
+        'context-id': string;
+    }> = [];
+
+    data.forEach(({
+        "start-time": start,
+        "end-time": end,
+        "room-or-table-id": room,
+        "application-name": name,
+        "business-name": business_name,
+        'context-id': context_id,
+        questions,
+    }) => {
+        // Map the room name to its primary name
+        const primaryRoom = roomMapping[room];
+
+        // Skip rooms that are not in our mapping
+        if (!primaryRoom) return;
+
+        // Find the panel description and rating from questions
+        const descQuestion = questions.find(q => q.title.toLowerCase().includes("description"));
+        const desc = descQuestion?.answer || "";
+
+        const ratingQuestion = questions.find(q => q.title === "Rate your panel");
+        const rating = ratingQuestion?.answer || "";
+
+        // API times are naive strings in Orlando local time (UTC-4).
+        // Appending "-04:00" forces correct parsing regardless of server timezone.
+        roomEvents.push({
+            room: primaryRoom,
+            name,
+            desc,
+            rating,
+            business_name,
+            'context-id': context_id,
+            startTime: new Date(start),
+            endTime: new Date(end)
+        });
+    });
+
+    // Get all unique time slots from 15-minute intervals between earliest and latest events
+    let earliestTime = new Date('2000-01-01 00:00:00');
+    let latestTime = new Date('2000-01-01 00:00:00');
+
+    roomEvents.forEach(event => {
+        if (event.startTime < earliestTime) earliestTime = new Date(event.startTime);
+        if (event.endTime > latestTime) latestTime = new Date(event.endTime);
+    });
+
+    // Create 15-minute intervals between earliest and latest times
+    const timeSlots: Date[] = [];
+    const currentTime = new Date(earliestTime);
+
+    while (currentTime <= latestTime) {
+        timeSlots.push(new Date(currentTime));
+        currentTime.setMinutes(currentTime.getMinutes() + 15);
+    }
+
+    // Initialize all time slots with empty rooms
+    timeSlots.forEach(slot => {
+        const hours = slot.getHours().toString().padStart(2, "0");
+        const minutes = slot.getMinutes().toString().padStart(2, "0");
+        const timeKey = `${hours}:${minutes}`;
+
+        events[timeKey] = {};
+        roomOrder.forEach(room => {
+            events[timeKey][room] = { name: "", description: "", business_name: "", 'context-id': "", rating: "", startTime: new Date(), endTime: new Date(), room: ""};
+        });
+    });
+
+    // Fill in each time slot with the appropriate event
+    roomEvents.forEach(event => {
+        timeSlots.forEach(slot => {
+            if (slot >= event.startTime && slot < event.endTime) {
+                const hours = slot.getHours().toString().padStart(2, "0");
+                const minutes = slot.getMinutes().toString().padStart(2, "0");
+                const timeKey = `${hours}:${minutes}`;
+
+                events[timeKey][event.room] = {
+                    name: event.name,
+                    description: event.desc,
+                    business_name: event.business_name,
+                    'context-id': event['context-id'],
+                    rating: event.rating,
+                    startTime: event.startTime,
+                    endTime: event.endTime,
+                    room: event.room
+                };
+            }
+        });
+    });
+
+    return events;
+}
+
+export function separateAssignments(assignments: Assignment[], startDate: string, endDate: string) {
+    const startDateTime = new Date(startDate);
+    const endDateTime = new Date(endDate);
+
+    return assignments.filter((assignment) => {
+        if (!assignment["start-time"] || !assignment["end-time"]) {
+            return false;
+        }
+
+        const eventStartTime = new Date(assignment["start-time"]);
+        const eventEndTime = new Date(assignment["end-time"]);
+
+        return (
+            (eventStartTime >= startDateTime && eventStartTime < endDateTime) ||
+            (eventEndTime > startDateTime && eventEndTime <= endDateTime) ||
+            (eventStartTime <= startDateTime && eventEndTime >= endDateTime)
+        );
+    });
+}
+
+export function combineAssignments(...assignmentArrays: Assignment[][]) {
+    return assignmentArrays.flat();
+}
+---

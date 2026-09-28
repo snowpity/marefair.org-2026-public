@@ -1,0 +1,363 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Layout from '@layouts/Layout.astro';
+
+import observatory from "@assets/credits/wizard_pg1_observatory.png";
+import sky from "@assets/credits/wizard_sky.png";
+import silhouette from "@assets/credits/wizard_pg2_silhouette.png";
+import wizard1 from "@assets/credits/wizard_pg1_mare.png";
+
+import wizard2 from "@assets/credits/wizard_pg2_mare.png"
+import fleur from "@assets/credits/fleur.png";
+
+import programmers from "@assets/credits/wizard_pg2_constellation_fair.png"
+import programmersHeader from "@assets/credits/wizard_pg2_programmers.png"
+import artist from "@assets/credits/wizard_pg2_constellation_mimosa.png"
+import artistHeader from "@assets/credits/wizard_pg2_artists.png"
+
+
+const engineersList = [
+    {
+        name: "Hoover",
+        role: "Lead Website Designer"
+    },
+    {
+        name: "Kahas",
+        role: "CONcrescent"
+    },
+    {
+        name: "Memely",
+        role: "Admin tools"
+    },
+    {
+        name: "Gonderlane",
+        role: "Wordsmith"
+    },
+    {
+        name: "CadBrad",
+        role: "Website Contributor"
+    },
+    {
+        name: "Corpulent Brony",
+        role: "Website Contributor"
+    },
+]
+
+const artistsList = [
+    {
+        name: "AnonTheAnon"
+    },
+    {
+        name: "Darkdoomer"
+    },
+    {
+        name: "FloralShitpost"
+    },
+    {
+        name: "GothicAnon"
+    },
+    {
+        name: "HorsePen"
+    },
+    {
+        name: "JayArr"
+    },
+    {
+        name: "Lockheart"
+    },
+    {
+        name: "MKogWheel"
+    },
+    {
+        name: "Mouseu"
+    },
+    {
+        name: "QuotePony"
+    },
+    {
+        name: "Rocket-Lawnchair"
+    },
+    {
+        name: "Seafood Dinner"
+    },
+    {
+        name: "Sigil"
+    },
+    {
+        name: "Spoonie"
+    },
+    {
+        name: "TheBatFang"
+    },
+    {
+        name: "TruthOrMare"
+    },
+    {
+        name: "TwoShoesMcGee"
+    },
+    {
+        name: "WISH"
+    },
+    {
+        name: "Zajice"
+    },
+]
+
+const imageWidth = 2560;
+
+const berates = [
+    "Just follow the obvious yellow sign that says \"To Observatory\"... Assuming you can even read.",
+    "Refrain from touching anything, everything here cost a thousand bits.",
+    "Did you know the whole website is 99% no JavaScript? This page is 100%! I know you schizo cavemans don't allow JS for \"security reasons\".",
+    "I'm a wizard, you're a \"Wizard\"; we are nothing alike.",
+    "You seem like someone who claps when the plane lands.",
+    "Falling from the sky must've given you some extreme brain damage.",
+    "I better not see you weirdos doing some shapes near my pool.",
+    "The word \"Mare\" is considered evil in some backward parts of our world.",
+    "You flew all the way here and you're spending time staring at a wizard?",
+    "Please shower. This is not a suggestion.",
+    "My hat alone costs more than your entire convention budget.",
+    "The lobby is down the hall and to the left.",
+]
+---
+<Layout title="Credits | Mare Fair 2026">
+    <input type="radio" id="entered-default" name="entered-selected" class="hidden" checked/>
+    <input type="radio" id="entered-true" name="entered-selected" class="hidden"/>
+
+    <input type="radio" id="modal-engineers" name="modal-selected" class="hidden"/>
+    <input type="radio" id="modal-artists" name="modal-selected" class="hidden"/>
+    <input type="radio" id="modal-none" name="modal-selected" class="hidden" checked/>
+
+    { berates.map((berate, index) => (
+        <input type="radio" id={`berate-input-${index}`} name="berate-selected" class="hidden" checked={index === 0}/>
+    ))}
+
+
+    <div id="scene-wrapper" class="overflow-hidden flex justify-center" style={`--img-width: ${imageWidth}px`}>
+        <Image src={sky} width={imageWidth} format="avif" alt="" id="sky" class="absolute max-w-none aspect-square min-h-[120vh] md:w-[2560px] w-[1000px] aspect-square md:-translate-y-[70%] -translate-y-[30%] transition-[translate,filter] duration-1000 brightness-25"/>
+
+        <div id="constellations" class="merriweather-sans-bold md:w-[2560px] w-[1000px] h-screen left-0 flex flex-row justify-center -translate-y-[100%] transition-all duration-1000">
+            <label for="entered-default" tabindex="0" role="button" aria-label="Go back" class="absolute w-full h-full top-0 left-0"/>
+
+            <label id="modal-back" for="modal-none" tabindex="0" role="button" aria-label="Go back" class="absolute w-full h-full top-0 left-0 hidden"/>
+
+            <div id="label-engineers" class="constellation md:right-1/2 right-1/3">
+                <label for="modal-engineers" tabindex="0" role="button" aria-label="See our programmers" class="label-button">
+                    <Image src={programmers} alt="Programmers" width={500} format="avif" class="" inert/>
+                </label>
+                <div id="artists-text" class="absolute top-0 pl-10 pt-10 credit-texts">
+                    <Image src={artistHeader} alt="The Artists" width={500} format="avif" inert/>
+                    <ul class="list-disc md:columns-2 columns-1  md:ml-[20%] ml-0 inline-block">
+                    { artistsList.map((person,index) => (
+                        <li>{person.name}</li>
+                    ))}
+                    </ul>
+                </div>
+            </div>
+            <div id="label-artists" class="constellation md:left-1/2 left-1/3 md:translate-y-[50%] translate-y-[80%]">
+                <label for="modal-artists" tabindex="0" role="button" aria-label="See our artists" class="label-button">
+                    <Image src={artist} alt="Artists" width={500} format="avif" class=""/>
+                </label>
+                <div id="engineers-text" class="absolute top-0 left-0 pl-0 -mt-5 credit-texts">
+                    <Image src={programmersHeader} alt="The Programmers" width={500} format="avif" />
+                    <ul class="list-disc inline-block">
+                    { engineersList.map((person,index) => (
+                        <li>{person.name} - {person.role}</li>
+                    ))}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div id="observatory-wrapper" class="absolute top-0 md:-mt-[25rem] mt-0 transition-[translate,margin-top] duration-1000">
+            <Image src={observatory} alt="" width={imageWidth} format="avif" class="max-w-none md:w-[2560px] w-[1000px]" inert/>
+            <div class="absolute top-[32%] left-[20%] w-[31.25%] wizard-wrapper">
+                <Image src={wizard1} alt="" width={800} format="avif" class="transition-[filter]" inert/>
+                <div id="wizard-labelbox" class="absolute top-0 left-0 w-full h-full overflow-hidden">
+                    <div id="wizard-strip" class="absolute top-0 left-0 flex h-full">
+                        { berates.map((berate, index) => (
+                            <label for={`berate-input-${index}`} class="wizard-label"> </label>
+                        ))}
+                        <!-- duplicate of index 0 for seamless loop -->
+                        <label for="berate-input-0" class="wizard-label"> </label>
+                    </div>
+                </div>
+            </div>
+            <label for="entered-true" tabindex="0" role="button" aria-label="Read the stars" class="w-[17%] h-[12%] absolute top-[41%] left-[55%] cursor-pointer"/>
+        </div>
+
+        <div id="silhouette" class="absolute top-0 md:w-[2560px] w-[1000px] h-[100dvh] translate-y-full transition-[translate] duration-1000 flex flex-col justify-end pointer-events-none">
+            <Image src={silhouette} alt="" id="" width={imageWidth} format="avif" class="max-w-none md:w-[2560px] w-[1000px] bottom-0" inert/>
+            <div id="dialogue" class="flex flex-col items-center bg-black pointer-events-auto">
+                <div class="relative w-[1000px] max-w-[90vw] bg-[#ffc3d7] border-[#9c49bd] border-[4px] p-4 -mt-3 mb-2">
+                    <p id="dialogue-default" class="dialogue-text"> All of these stars are meaningless to you. Probably bounced straight off your smooth head. </p>
+                    <p id="dialogue-engineers" class="dialogue-text hidden"> Your monkey brain can't comprehend even half the works they've achieved. </p>
+                    <p id="dialogue-artists" class="dialogue-text hidden"> You would never spark half as bright as these stars, why even bother? </p>
+
+                    <Image src={fleur} width={20} format="avif" alt="" class="absolute top-[-12px] left-[-12px]" inert/>
+                    <Image src={fleur} width={20} format="avif" alt="" class="absolute top-[-12px] right-[-12px] rotate-90" inert/>
+                    <Image src={fleur} width={20} format="avif" alt="" class="absolute bottom-[-12px] left-[-12px] rotate-270" inert/>
+                    <Image src={fleur} width={20} format="avif" alt="" class="absolute bottom-[-12px] right-[-12px] rotate-180" inert/>
+                    <Image src={wizard2} width={200} format="avif" alt="" class="md:w-[200px] w-[100px] absolute md:top-[-190px] top-[-99px] right-[20px]" inert/>
+                </div>
+            </div>
+        </div>
+
+        <div id="silhouette-main" class="absolute top-0 md:w-[2560px] w-[1000px] h-[100dvh] transition-[translate] duration-1000 flex flex-col justify-end pointer-events-none">
+            <div id="dialogue-main" class="flex flex-col items-center pointer-events-auto">
+                <div class="relative w-[1000px] max-w-[90vw] bg-[#ffc3d7] border-[#9c49bd] border-[4px] p-4 -mt-3 mb-2">
+                    { berates.map((berate, index) => (
+                        <p id={`berate-${index}`} class="dialogue-text hidden"> {berate} </p>
+                    ))}
+
+                    <Image src={fleur} width={20} format="avif" alt="" class="absolute top-[-12px] left-[-12px]" inert/>
+                    <Image src={fleur} width={20} format="avif" alt="" class="absolute top-[-12px] right-[-12px] rotate-90" inert/>
+                    <Image src={fleur} width={20} format="avif" alt="" class="absolute bottom-[-12px] left-[-12px] rotate-270" inert/>
+                    <Image src={fleur} width={20} format="avif" alt="" class="absolute bottom-[-12px] right-[-12px] rotate-180" inert/>
+                </div>
+            </div>
+        </div>
+
+        <div id="side-gradient" class="absolute top-0 imgWidth h-full min-h-[100lvh] center-horizontally pointer-events-none">
+            <div class="absolute top-0 left-0 w-[320px] h-full -translate-x-[calc(100%-320px)] bg-gradient-to-l from-transparent to-black pointer-events-none before:content-[''] before:absolute before:top-0 before:right-full before:w-screen before:h-full before:bg-black"></div>
+            <div class="absolute top-0 right-0 w-[320px] h-full translate-x-[calc(100%-320px)] bg-gradient-to-r from-transparent to-black pointer-events-none before:content-[''] before:absolute before:top-0 before:left-full before:w-screen before:h-full before:bg-black"></div>
+        </div>
+    </div>
+</Layout>
+
+<style>
+    @reference "tailwindcss";
+
+    .center-horizontally{
+        @apply left-1/2 -translate-x-1/2;
+    }
+
+    .imgWidth{
+        width: var(--img-width);
+        max-width: var(--img-width);
+        min-width: var(--img-width);
+    }
+
+    #entered-true:checked ~ #scene-wrapper #sky {
+        @apply translate-y-0 brightness-100;
+    }
+    #entered-true:checked ~ #scene-wrapper #observatory-wrapper {
+        @apply mt-0 translate-y-[150vh];
+    }
+    #entered-true:checked ~ #scene-wrapper #constellations {
+        @apply translate-y-0;
+    }
+    #entered-true:checked ~ #scene-wrapper #silhouette {
+        @apply translate-y-0;
+    }
+    #entered-true:checked ~ #scene-wrapper #silhouette-main {
+        @apply translate-y-[100dvh];
+    }
+
+    .dialogue-text{
+        @apply md:text-base text-sm;
+    }
+
+    .credit-texts{
+        @apply text-white md:text-base text-[3vw] opacity-0 transition-opacity duration-500 pointer-events-none drop-shadow-[0_0_5px_rgba(0,0,0,1)];
+    }
+
+    .constellation {
+        @apply transition-all absolute md:w-1/3 w-2/3 h-fit ;
+    }
+
+    .label-button {
+        @apply aspect-square w-fit h-fit transition-all cursor-pointer duration-500 block rounded-full hover:drop-shadow-[0_0_35px_rgba(256,256,256,1)];
+    }
+
+    #modal-engineers:checked ~ #scene-wrapper #label-artists {
+        @apply pointer-events-none;
+    }
+    #modal-engineers:checked ~ #scene-wrapper #label-artists .label-button {
+        @apply opacity-0;
+    }
+    #modal-engineers:checked ~ #scene-wrapper #engineers-text {
+        @apply opacity-100;
+    }
+    #modal-engineers:checked ~ #scene-wrapper #engineers-text ul {
+        @apply pointer-events-auto;
+    }
+
+    #modal-engineers:checked ~ #scene-wrapper #dialogue-default {
+        @apply hidden;
+    }
+    #modal-engineers:checked ~ #scene-wrapper #dialogue-engineers {
+        @apply block;
+    }
+
+    #modal-artists:checked ~ #scene-wrapper #label-engineers {
+        @apply pointer-events-none;
+    }
+    #modal-artists:checked ~ #scene-wrapper #label-engineers .label-button {
+        @apply opacity-0
+    }
+    #modal-artists:checked ~ #scene-wrapper #artists-text {
+        @apply opacity-100;
+    }
+    #modal-artists:checked ~ #scene-wrapper #artists-text ul {
+        @apply pointer-events-auto;
+    }
+
+    #modal-artists:checked ~ #scene-wrapper #dialogue-default {
+        @apply hidden;
+    }
+    #modal-artists:checked ~ #scene-wrapper #dialogue-artists {
+        @apply block;
+    }
+
+    #modal-artists:checked ~ #scene-wrapper #modal-back,
+    #modal-engineers:checked ~ #scene-wrapper #modal-back {
+        @apply block;
+    }
+
+</style>
+
+<style>
+    #wizard-strip {
+        /* +1 for the duplicate first label at the end */
+        width: calc((var(--label-count) + 1) * 100%);
+        animation: wizard-cycle calc(var(--label-count) * var(--dwell-time)) steps(var(--label-count), end) infinite;
+    }
+
+    .wizard-label {
+        width: calc(100% / (var(--label-count) + 1));
+        height: 100%;
+        flex-shrink: 0;
+        cursor: pointer;
+    }
+
+    @keyframes wizard-cycle {
+        0%   { transform: translateX(0%); }
+        100% { transform: translateX(calc(var(--label-count) / (var(--label-count) + 1) * -100%)); }
+    }
+
+    .wizard-wrapper:has(#wizard-labelbox .wizard-label:hover) img {
+        filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8));
+    }
+</style>
+
+<style is:inline set:html={`
+    #wizard-labelbox {
+        --label-count: ${berates.length};
+        --dwell-time: 0.2s;
+        overflow: hidden;
+    }
+
+    /* default: show berate-0 when nothing else is checked */
+    #berate-0 { display: block; }
+
+    ${berates.map((_, index) => `
+        #berate-input-${index}:checked ~ #scene-wrapper #berate-${index} {
+            display: block;
+        }
+        ${berates.map((_, otherIndex) => otherIndex !== index ? `
+        #berate-input-${index}:checked ~ #scene-wrapper #berate-${otherIndex} {
+            display: none;
+        }` : '').join('')}
+    `).join('')}
+`}/>

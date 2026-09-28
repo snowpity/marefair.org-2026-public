@@ -1,0 +1,23 @@
+---
+import { Icon } from "astro-icon/components";
+---
+<footer class="fixed bottom-0 p-2 z-50">
+	<div class="text-center sm:text-left" style="filter: drop-shadow(0 0 0.1rem rgba(0, 0, 0, 0.75));">
+    	<a aria-label="Snowpity, Inc." href="https://snowpity.org" target="_blank"
+			class="pointer-events-auto text-white hover:underline underline-offset-4 font-bold tracking-wide text-sm sm:text-base">
+			© 2026 Snowpity, Inc.
+		</a>
+		<span class="text-white font-bold text-sm sm:text-base">|</span>
+		<a aria-label="Privacy Policy" href="/privacy"
+			class="pointer-events-auto text-white hover:underline underline-offset-4 font-bold tracking-wide text-sm sm:text-base">
+			Privacy Policy
+		</a>
+		{Astro.url.pathname === "/" && (
+		<span class="text-white font-bold text-sm sm:text-base">|</span>	
+  		<a aria-label="FAQ" href="/faq"
+			class="pointer-events-auto text-white hover:underline underline-offset-4 font-bold tracking-wide text-sm sm:text-base">
+			FAQ
+		</a>
+		)}
+	</div>
+</footer>
