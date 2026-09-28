@@ -5,6 +5,11 @@ npm install astro@latest @astrojs/react@latest @astrojs/partytown@latest
 ```
 don't do the npx one
 
+# Contributors
+
+<img width="896" height="906" alt="image" src="https://github.com/user-attachments/assets/bb9db983-0c30-42d1-bc6e-a7c5ef55eb92" />
+
+
 # Astro Starter Kit: Basics
 
 ```sh
